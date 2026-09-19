@@ -21,9 +21,9 @@ const fallbackWorks = [
 ]
 
 const prices = [
-  { size: '40', price: '4 500 ₽', note: 'Компактный акцент' },
-  { size: '60', price: '6 500 ₽', note: 'Самый ходовой', popular: true },
-  { size: '90', price: '12 500 ₽', note: 'Главный объект комнаты' },
+  { size: '40', price: '5 500 ₽', note: 'Компактный акцент' },
+  { size: '60', price: '7 500 ₽', note: 'Самый ходовой', popular: true },
+  { size: '90', price: '13 500 ₽', note: 'Главный объект комнаты' },
 ]
 
 const fallbackReviews = [
