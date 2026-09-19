@@ -108,7 +108,7 @@ function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void
         {visibleWorks.map((work, index) => (
           <article className="archive-card" key={`${work.name}-${index}`}>
             <div className="archive-card__image">
-              <img src={work.image} alt={`Граффити-зеркало ${work.name}`} onClick={() => setLightbox(work.image)} />
+              <img src={work.image} alt={`Граффити-зеркало ${work.name}`} loading={index < 2 ? 'eager' : 'lazy'} decoding="async" onClick={() => setLightbox(work.image)} />
               <span>{String(index + 1).padStart(2, '0')}</span>
             </div>
             <div className="archive-card__caption"><h2>{work.name}</h2><span>{work.size}</span></div>
@@ -257,9 +257,15 @@ function App() {
         <div className="works-carousel" data-reveal>
           <div className="works-carousel__image">
             <div className="works-carousel__track" style={{ transform: `translate3d(-${activeWork * 100}%, 0, 0)` }}>
-              {works.map((work) => (
-                <div className="works-carousel__slide" key={work.name}>
-                  <img src={work.image} alt={`Граффити-зеркало ${work.name}`} onClick={() => setLightbox(work.image)} />
+              {works.map((work, index) => (
+                <div className="works-carousel__slide" key={`${work.name}-${index}`}>
+                  <img
+                    src={work.image}
+                    alt={`Граффити-зеркало ${work.name}`}
+                    loading={index === activeWork ? 'eager' : 'lazy'}
+                    decoding="async"
+                    onClick={() => setLightbox(work.image)}
+                  />
                 </div>
               ))}
             </div>
@@ -395,7 +401,7 @@ function App() {
           <div className="reviews-feed__track" ref={reviewTrackRef}>
             {reviews.map((image, i) => (
               <figure className="reviews-feed__item" key={i}>
-                <img src={image} alt="Отзыв клиента" loading="lazy" onClick={() => setLightbox(image)} />
+                <img src={image} alt="Отзыв клиента" loading="lazy" decoding="async" onClick={() => setLightbox(image)} />
               </figure>
             ))}
           </div>

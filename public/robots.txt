@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /uploads/
+Disallow: /#admin
+
+Sitemap: https://graffiti-zerkalo.ru/sitemap.xml
