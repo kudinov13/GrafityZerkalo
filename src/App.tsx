@@ -180,7 +180,7 @@ function App() {
   }, [archiveOpen, adminOpen])
 
   if (archiveOpen) return <PortfolioArchive works={works} onBack={() => setArchiveOpen(false)} />
-  if (adminOpen) return <AdminPanel onExit={() => { setAdminOpen(false); window.location.hash = '' }} />
+  if (adminOpen) return <AdminPanel onExit={() => { window.location.href = window.location.pathname }} />
 
   const currentWork = works.length ? works[Math.min(activeWork, works.length - 1)] : { name: '', size: '', image: '' }
   const moveWork = (step: number) => setActiveWork((current) => Math.min(works.length - 1, Math.max(0, current + step)))
