@@ -24,6 +24,10 @@ if (!fs.existsSync(uploadsDir)) {
 // Middleware
 app.use(cors())
 app.use(express.json())
+app.use('/api', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
+  next()
+})
 
 // Статика для загруженных изображений
 app.use('/uploads', express.static(uploadsDir))
