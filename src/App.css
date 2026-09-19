@@ -469,3 +469,10 @@ footer small { color: var(--muted); }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   [data-reveal] { opacity: 1; transform: none; }
 }
+
+/* Lightbox */
+.works-carousel__slide img, .archive-card__image img, .reviews-feed__item img { cursor: zoom-in; }
+.lightbox { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(7,7,6,.93); backdrop-filter: blur(8px); cursor: zoom-out; }
+.lightbox img { max-width: 94vw; max-height: 90vh; object-fit: contain; box-shadow: 0 30px 90px rgba(0,0,0,.65); }
+.lightbox__close { position: fixed; top: 18px; right: 20px; width: 46px; height: 46px; border: 1px solid rgba(244,242,236,.25); border-radius: 50%; background: rgba(20,20,18,.7); color: #f4f2ec; font-size: 26px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s, color .2s; }
+.lightbox__close:hover { background: var(--acid); color: #070706; }

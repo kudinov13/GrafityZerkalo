@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import AdminPanel from './admin/AdminPanel'
+import Lightbox from './Lightbox'
 import './admin/AdminPanel.css'
 import { api } from './api'
 
@@ -69,6 +70,7 @@ const ARCHIVE_PAGE_SIZE = 8
 function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [visibleCount, setVisibleCount] = useState(ARCHIVE_PAGE_SIZE)
+  const [lightbox, setLightbox] = useState<string | null>(null)
   const goBack = () => { setMenuOpen(false); onBack() }
   const visibleWorks = works.slice(0, visibleCount)
   const hasMore = visibleCount < works.length
@@ -106,7 +108,7 @@ function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void
         {visibleWorks.map((work, index) => (
           <article className="archive-card" key={`${work.name}-${index}`}>
             <div className="archive-card__image">
-              <img src={work.image} alt={`Граффити-зеркало ${work.name}`} />
+              <img src={work.image} alt={`Граффити-зеркало ${work.name}`} onClick={() => setLightbox(work.image)} />
               <span>{String(index + 1).padStart(2, '0')}</span>
             </div>
             <div className="archive-card__caption"><h2>{work.name}</h2><span>{work.size}</span></div>
@@ -121,6 +123,7 @@ function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void
         )}
         <a className="archive-contact" href="#contact" onClick={onBack}>Обсудить своё зеркало <ArrowIcon /></a>
       </div>
+      {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
     </main>
   )
 }
@@ -132,6 +135,7 @@ function App() {
   const [adminOpen, setAdminOpen] = useState(false)
   const [works, setWorks] = useState<Work[]>(fallbackWorks)
   const [reviews, setReviews] = useState<string[]>(fallbackReviews)
+  const [lightbox, setLightbox] = useState<string | null>(null)
   const reviewTrackRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -255,7 +259,7 @@ function App() {
             <div className="works-carousel__track" style={{ transform: `translate3d(-${activeWork * 100}%, 0, 0)` }}>
               {works.map((work) => (
                 <div className="works-carousel__slide" key={work.name}>
-                  <img src={work.image} alt={`Граффити-зеркало ${work.name}`} />
+                  <img src={work.image} alt={`Граффити-зеркало ${work.name}`} onClick={() => setLightbox(work.image)} />
                 </div>
               ))}
             </div>
@@ -391,7 +395,7 @@ function App() {
           <div className="reviews-feed__track" ref={reviewTrackRef}>
             {reviews.map((image, i) => (
               <figure className="reviews-feed__item" key={i}>
-                <img src={image} alt="Отзыв клиента" loading="lazy" />
+                <img src={image} alt="Отзыв клиента" loading="lazy" onClick={() => setLightbox(image)} />
               </figure>
             ))}
           </div>
@@ -440,6 +444,7 @@ function App() {
         </div>
         <small>© 2026 Vitaliy Ramcy</small>
       </footer>
+      {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
     </main>
   )
 }

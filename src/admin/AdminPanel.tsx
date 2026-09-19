@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '../api'
+import Lightbox from '../Lightbox'
 
 // Seeded rows store full site paths (/images/...); uploaded files are bare
 // filenames served from /uploads/.
@@ -63,11 +64,12 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
   )
 }
 
-function ProductForm({ product, categories, onSave, onCancel }: {
+function ProductForm({ product, categories, onSave, onCancel, onZoom }: {
   product: Product | null
   categories: Category[]
   onSave: (data: Record<string, unknown>, files: File[]) => void
   onCancel: () => void
+  onZoom: (src: string) => void
 }) {
   const [name, setName] = useState(product?.name || '')
   const [size, setSize] = useState(product?.size || '')
@@ -164,7 +166,7 @@ function ProductForm({ product, categories, onSave, onCancel }: {
           <div className="admin-images-grid">
             {existingImages.map((img, index) => (
               <div key={img.id} className="admin-image-item">
-                <img src={imgUrl(img.filename)} alt="" />
+                <img src={imgUrl(img.filename)} alt="" onClick={() => onZoom(imgUrl(img.filename))} />
                 {index === 0 ? (
                   <span className="admin-image-cover" title="Обложка товара">★</span>
                 ) : (
@@ -187,7 +189,7 @@ function ProductForm({ product, categories, onSave, onCancel }: {
           <p>Выбрано файлов: {files.length}</p>
           <div className="admin-images-grid">
             {files.map((file, i) => (
-              <img key={i} src={URL.createObjectURL(file)} alt="" />
+              <img key={i} src={URL.createObjectURL(file)} alt="" onClick={() => onZoom(URL.createObjectURL(file))} />
             ))}
           </div>
         </div>
@@ -252,7 +254,7 @@ function CategoryManager({ categories, onRefresh }: {
   )
 }
 
-function ReviewsManager({ onRefresh }: { onRefresh: () => void }) {
+function ReviewsManager({ onRefresh, onZoom }: { onRefresh: () => void; onZoom: (src: string) => void }) {
   const [reviews, setReviews] = useState<Array<{ id: number; filename: string }>>([])
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
@@ -316,7 +318,7 @@ function ReviewsManager({ onRefresh }: { onRefresh: () => void }) {
       <div className="admin-reviews-grid">
         {reviews.map((rev) => (
           <div key={rev.id} className="admin-review-item">
-            <img src={imgUrl(rev.filename)} alt="Отзыв" />
+            <img src={imgUrl(rev.filename)} alt="Отзыв" onClick={() => onZoom(imgUrl(rev.filename))} />
             <label className="admin-review-replace" title="Заменить фото">
               ⟳
               <input type="file" accept="image/*" hidden onChange={(e) => handleReplace(rev.id, e.target.files?.[0])} />
@@ -338,6 +340,7 @@ export default function AdminPanel({ onExit }: { onExit: () => void }) {
   const [showForm, setShowForm] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(false)
+  const [lightbox, setLightbox] = useState<string | null>(null)
 
   const checkAuth = useCallback(async () => {
     if (!api.isLoggedIn()) {
@@ -474,6 +477,7 @@ export default function AdminPanel({ onExit }: { onExit: () => void }) {
           categories={categories}
           onSave={handleSaveProduct}
           onCancel={() => { setShowForm(false); setEditProduct(null) }}
+          onZoom={setLightbox}
         />
       )}
 
@@ -484,7 +488,7 @@ export default function AdminPanel({ onExit }: { onExit: () => void }) {
             <div key={product.id} className="admin-product-card">
               <div className="admin-product-card__image">
                 {product.cover ? (
-                  <img src={imgUrl(product.cover)} alt={product.name} />
+                  <img src={imgUrl(product.cover)} alt={product.name} onClick={() => setLightbox(imgUrl(product.cover!))} />
                 ) : (
                   <div className="admin-no-image">Нет фото</div>
                 )}
@@ -512,10 +516,11 @@ export default function AdminPanel({ onExit }: { onExit: () => void }) {
       )}
 
       {tab === 'reviews' && (
-        <ReviewsManager onRefresh={() => {}} />
+        <ReviewsManager onRefresh={() => {}} onZoom={setLightbox} />
       )}
 
       {loading && <div className="admin-overlay">Сохранение...</div>}
+      {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
     </div>
   )
 }

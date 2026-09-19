@@ -747,3 +747,5 @@
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   }
 }
+
+.admin-image-item img, .admin-images-grid > img, .admin-review-item img, .admin-product-card__image img { cursor: zoom-in; }
