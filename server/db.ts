@@ -56,8 +56,8 @@ db.exec(`
   );
 `)
 
-// Создаём админа по умолчанию, если его нет
-const adminExists = db.prepare('SELECT id FROM admins WHERE username = ?').get('admin')
+// Создаём админа по умолчанию, если таблица пуста
+const adminExists = db.prepare('SELECT id FROM admins LIMIT 1').get()
 if (!adminExists) {
   const hashedPassword = bcrypt.hashSync('ramcy2026', 10)
   db.prepare('INSERT INTO admins (username, password) VALUES (?, ?)').run('admin', hashedPassword)
