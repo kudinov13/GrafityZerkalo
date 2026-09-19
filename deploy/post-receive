@@ -14,6 +14,10 @@ while read oldrev newrev ref; do
     npm ci --silent
     echo "=== build ==="
     npm run build
+    echo "=== update nginx ==="
+    install -m 644 "$TARGET/deploy/nginx-site.conf" /etc/nginx/sites-available/graffiti-zerkalo
+    nginx -t
+    systemctl reload nginx
     echo "=== restart api ==="
     if pm2 describe graffiti-api > /dev/null 2>&1; then
       pm2 restart graffiti-api
