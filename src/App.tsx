@@ -7,17 +7,17 @@ import { api } from './api'
 
 const fallbackWorks = [
   { name: 'Mash', size: '90 см', image: '/images/IMG_9801.webp' },
-  { name: 'Tipadima', size: '60 см', image: '/images/IMG_7579.webp' },
-  { name: 'DJ ПЛАЩ', size: '60 см', image: '/images/IMG_8730.webp' },
-  { name: 'Magu', size: '60 см', image: '/images/IMG_9767.webp' },
-  { name: 'Traffic', size: '95 см', image: '/images/IMG_6804.webp' },
-  { name: 'Graffitimarket', size: '90 см', image: '/images/IMG_9422.webp' },
-  { name: 'Около', size: '60 см', image: '/images/IMG_9590.webp' },
-  { name: 'Ustyles', size: '60 см', image: '/images/IMG_0001.webp' },
-  { name: 'Arton', size: '60 см', image: '/images/IMG_0002.webp' },
-  { name: 'Break dance', size: '60 см', image: '/images/IMG_0003.webp' },
-  { name: 'Traffic', size: '95 см', image: '/images/IMG_9999.webp' },
-  { name: 'Custom / 01', size: '60 см', image: '/images/IMG_9976.webp' },
+  { name: 'Ustyles', size: '60 см', image: '/images/IMG_7579.webp' },
+  { name: 'Arton', size: '60 см', image: '/images/IMG_8730.webp' },
+  { name: 'Traffic', size: '95 см', image: '/images/IMG_9767.webp' },
+  { name: 'Ramcy', size: '60 см', image: '/images/IMG_6804.webp' },
+  { name: 'DJ ПЛАЩ', size: '60 см', image: '/images/IMG_9422.webp' },
+  { name: 'Break dance', size: '60 см', image: '/images/IMG_9590.webp' },
+  { name: 'Graffitimarket', size: '60 см', image: '/images/IMG_0001.webp' },
+  { name: 'MAGU', size: '60 см', image: '/images/IMG_0002.webp' },
+  { name: 'Около', size: '60 см', image: '/images/IMG_0003.webp' },
+  { name: 'Mosya', size: '60 см', image: '/images/IMG_9999.webp' },
+  { name: 'Tipadima', size: '60 см', image: '/images/IMG_9976.webp' },
 ]
 
 const prices = [
