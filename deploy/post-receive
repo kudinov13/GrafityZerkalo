@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+
+TARGET=/var/www/graffiti-zerkalo
+GIT_DIR=/var/repo/graffiti-zerkalo.git
+BRANCH=main
+
+while read oldrev newrev ref; do
+  if [ "$ref" = "refs/heads/$BRANCH" ]; then
+    echo "=== Deploying $BRANCH ==="
+    git --work-tree="$TARGET" --git-dir="$GIT_DIR" checkout -f "$BRANCH"
+    cd "$TARGET"
+    echo "=== npm ci ==="
+    npm ci --silent
+    echo "=== build ==="
+    npm run build
+    echo "=== restart api ==="
+    if pm2 describe graffiti-api > /dev/null 2>&1; then
+      pm2 restart graffiti-api
+    else
+      pm2 start npm --name graffiti-api -- run server
+    fi
+    pm2 save
+    echo "=== Deploy done ==="
+  fi
+done

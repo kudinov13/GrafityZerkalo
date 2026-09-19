@@ -432,7 +432,7 @@ function App() {
 
       <footer>
         <a className="brand" href="#top"><img src="/images/GrafitLogo.png" alt="VITALIY RAMCY" /></a>
-        <p>Граффити-зеркала · Москва</p>
+        <p><span onClick={() => { window.location.hash = 'admin'; setAdminOpen(true) }}>Граффити</span>-зеркала · Москва</p>
         <div>
           <a href="tel:+79778665350">+7 977 866-53-50</a>
           <a href="mailto:ya@vitaligurov.ru">ya@vitaligurov.ru</a>
