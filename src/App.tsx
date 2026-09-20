@@ -78,7 +78,7 @@ function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void
   return (
     <main className="archive-page">
       <header className="archive-header">
-        <a className="brand" href="#top" onClick={goBack} aria-label="Vitaliy Ramcy, на главную"><img src="/images/GrafitLogo.png" alt="VITALIY RAMCY" /></a>
+        <a className="brand" href="#top" onClick={goBack} aria-label="Vitaliy Ramcy, на главную"><img src="/images/GrafitLogo.webp" alt="VITALIY RAMCY" /></a>
         <nav id="archive-navigation" className={menuOpen ? 'nav nav--open' : 'nav'} aria-label="Основная навигация">
           <a href="#works" onClick={goBack}>Работы</a>
           <a href="#artist" onClick={goBack}>Автор</a>
@@ -189,7 +189,7 @@ function App() {
     <main>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Vitaliy Ramcy, на главную">
-          <img src="/images/GrafitLogo.png" alt="VITALIY RAMCY" />
+          <img src="/images/GrafitLogo.webp" alt="VITALIY RAMCY" />
         </a>
         <button
           className="menu-button"
@@ -215,8 +215,8 @@ function App() {
       <section className="hero" id="top">
         <div className="hero__media" aria-hidden="true">
           <picture>
-            <source media="(max-width: 680px)" srcSet="/images/Mobile/Hero-mobile.png" />
-            <img src="/images/Hero_Desktop.png" alt="" fetchPriority="high" />
+            <source media="(max-width: 680px)" srcSet="/images/Mobile/Hero-mobile.webp" />
+            <img src="/images/Hero_Desktop.webp" alt="" fetchPriority="high" />
           </picture>
         </div>
         <div className="hero__shade" />
@@ -301,7 +301,7 @@ function App() {
 
       <section className="artist section" id="artist">
         <div className="artist__photo" data-reveal>
-          <img src="/images/ramcy.png" alt="Виталий RAMCY за работой" loading="lazy" />
+          <img src="/images/ramcy.webp" alt="Виталий RAMCY за работой" loading="lazy" />
           <span>RAMCY / MOSCOW</span>
         </div>
         <div className="artist__text" data-reveal>
@@ -340,7 +340,7 @@ function App() {
 
       <section className="campaign" aria-label="Граффити-зеркала в интерьере">
         <picture>
-          <source media="(max-width: 680px)" srcSet="/images/Mobile/Mobile-2.png" />
+          <source media="(max-width: 680px)" srcSet="/images/Mobile/Mobile-2.webp" />
           <img src="/images/3.webp" alt="Девушка держит граффити-зеркало на фоне серой бетонной стены" loading="lazy" />
         </picture>
         <div className="campaign__overlay" />
@@ -441,7 +441,7 @@ function App() {
       </section>
 
       <footer>
-        <a className="brand" href="#top"><img src="/images/GrafitLogo.png" alt="VITALIY RAMCY" /></a>
+        <a className="brand" href="#top"><img src="/images/GrafitLogo.webp" alt="VITALIY RAMCY" /></a>
         <p><span onClick={() => { window.location.hash = 'admin'; setAdminOpen(true) }}>Граффити</span>-зеркала · Москва</p>
         <div>
           <a href="tel:+79778665350">+7 977 866-53-50</a>
