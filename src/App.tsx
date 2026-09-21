@@ -415,7 +415,6 @@ function App() {
               </ul>
               <div className="price__footer">
                 <strong>{item.price}</strong>
-                <a href="#contact" aria-label={`Заказать зеркало ${item.size} сантиметров`}><ArrowIcon /></a>
               </div>
             </article>
           ))}
