@@ -1,6 +1,10 @@
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
 import db from './db.js'
 import { chatCompletion, ChatMessage, GigaFunction } from './gigachat.js'
-import { sendMessage } from './telegram.js'
+import { sendDocument, sendMessage } from './telegram.js'
+
+const uploadsDir = join(dirname(fileURLToPath(import.meta.url)), 'uploads')
 
 const SYSTEM_PROMPT = `Ты — бот-помощник RAMCY на сайте graffiti-zerkalo.ru. RAMCY (Виталий Гуров) — уличный художник из Москвы, который придумал и делает граффити-зеркала — кастомные арт-объекты в единственном экземпляре (one of one).
 
@@ -32,9 +36,10 @@ const SYSTEM_PROMPT = `Ты — бот-помощник RAMCY на сайте gr
 
 ДОСТАВКА
 - Отправляем по всей России, СНГ и ближайшим странам.
-- Основные службы: СДЭК и DPD; альтернатива — Яндекс.Доставка; срочно по Москве и МО — курьер Яндекс.Такси. Возможна передача при встрече в Москве.
-- Доставку клиент оплачивает при получении посылки. Точную стоимость доставки бот не называет — она рассчитывается после оформления заявки или обсуждается с Виталием.
-- Другие страны — обсуждается лично с Виталием.
+- Возможны СДЭК, DPD, Яндекс.Доставка, курьер по Москве/МО или личная встреча, но конкретный способ и стоимость доставки ВСЕГДА обсуждаются только лично с Виталием после заявки.
+- Бот НЕ предлагает клиенту выбирать службу доставки и не показывает список вариантов. В заявке delivery_method всегда передавай точное значение «Обсудить лично с Виталием».
+- Доставку клиент оплачивает при получении посылки. Точную стоимость доставки бот не называет.
+- Другие страны также обсуждаются лично с Виталием.
 
 ПОЛУЧЕНИЕ ПОСЫЛКИ (рассказывай после оформления заявки или если спрашивают про повреждения)
 - Все посылки застрахованы. В пункте выдачи обязательно: проверить коробку на повреждения, затем проверить содержимое под камерами пункта выдачи. Если зеркало повреждено — сфотографировать упаковку снаружи и повреждение внутри, посылку не забирать и прислать фото Виталию. Без этого алгоритма сложно доказать вину доставки и получить страховую выплату. При соблюдении алгоритма зеркало переделаем.
@@ -49,7 +54,8 @@ const SYSTEM_PROMPT = `Ты — бот-помощник RAMCY на сайте gr
 - Если Telegram: запроси @username или ссылку строго вида https://t.me/username. Не принимай просто имя без @/ссылки.
 - Если VK: обязательно запроси полную ссылку на личную страницу клиента вида https://vk.com/username или https://vk.ru/username.
 - Если MAX: спроси, зарегистрирован ли MAX на номере телефона, указанном ранее. Если да — в messenger_contact передай тот же телефон. Если нет — обязательно запроси отдельный номер MAX; тогда phone — основной номер для звонка, messenger_contact — отдельный номер MAX.
-- Потом спроси удобное время связи и способ доставки (СДЭК, DPD, Яндекс.Доставка, встреча в Москве или обсудить).
+- Потом спроси только удобное время связи. Способ доставки НЕ спрашивай: он всегда обсуждается лично с Виталием.
+- Если клиент прикрепил файл, учти его имя и описание из системного сообщения о приложенных файлах. Укажи это в design_idea/comment заявки. Файлы сервер автоматически привяжет к заявке.
 - Задавай по одному-два вопроса за сообщение. Не создавай заявку раньше времени и не подставляй выдуманные данные.
 - НИКОГДА не называй Виталия Виктором или другим именем. Имя администратора — только ВИТАЛИЙ.
 Когда ВСЕ обязательные данные собраны — вызови submit_application. После успешного вызова напиши ТОЧНО: «Заявка отправлена. Скоро Виталий с вами свяжется для уточнения деталей и подтверждения вашего заказа. Спасибо» и кратко напомни про проверку посылки в пункте выдачи.
@@ -81,7 +87,7 @@ const FUNCTIONS: GigaFunction[] = [
         contact_method: { type: 'string', enum: ['telegram', 'vk', 'max'], description: 'Выбранный канал связи: только telegram, vk или max' },
         messenger_contact: { type: 'string', description: 'Проверенный контакт мессенджера: Telegram @username или https://t.me/username; полная ссылка VK; для MAX номер телефона аккаунта' },
         contact_time: { type: 'string', description: 'Удобное время связи' },
-        delivery_method: { type: 'string', description: 'Способ доставки: СДЭК, DPD, Яндекс.Доставка, встреча в Москве, обсудить' },
+        delivery_method: { type: 'string', enum: ['Обсудить лично с Виталием'], description: 'Всегда точное значение: Обсудить лично с Виталием' },
         comment: { type: 'string', description: 'Комментарий клиента' },
       },
       required: ['name', 'city', 'width', 'design_idea', 'colors', 'phone', 'email', 'contact_method', 'messenger_contact', 'contact_time', 'delivery_method'],
@@ -159,9 +165,7 @@ function validApplication(a: Record<string, unknown>, history: ChatMessage[]): s
   if (!/(утр|д[её]н|вечер|любое время|в любое|после \d|до \d|\d{1,2}[:.]\d{2})/i.test(userText)) {
     return 'missing: клиент не указал удобное время связи'
   }
-  if (!/(сд[эе]к|dpd|яндекс.{0,15}достав|самовывоз|встреч|доставк.{0,20}обсуд)/i.test(userText)) {
-    return 'missing: клиент не выбрал способ доставки'
-  }
+  a.delivery_method = 'Обсудить лично с Виталием'
   return null
 }
 
@@ -188,6 +192,30 @@ function createApplication(a: Record<string, unknown>): number {
     String(a.comment || ''),
   ) as { lastInsertRowid: number | bigint }
   return Number(result.lastInsertRowid)
+}
+
+type ApplicationFile = { filename: string; original_name: string; description: string }
+
+function attachApplicationFiles(applicationId: number, sessionId: string): ApplicationFile[] {
+  if (!sessionId) return []
+  db.prepare(`
+    UPDATE application_files SET application_id = ?
+    WHERE session_id = ? AND application_id IS NULL
+  `).run(applicationId, sessionId)
+  return db.prepare(`
+    SELECT filename, original_name, description FROM application_files
+    WHERE application_id = ? ORDER BY created_at
+  `).all(applicationId) as ApplicationFile[]
+}
+
+async function notifyApplicationFiles(id: number, files: ApplicationFile[]) {
+  for (const file of files) {
+    const description = file.description ? `\nОписание: ${file.description}` : ''
+    await sendDocument(
+      join(uploadsDir, file.filename),
+      `Файл к заявке #${id}: ${file.original_name}${description}`.slice(0, 1000),
+    ).catch((err) => console.error('[chat] telegram application file failed:', err))
+  }
 }
 
 async function notifyApplication(id: number, a: Record<string, unknown>) {
@@ -220,7 +248,7 @@ export interface ChatResponse {
 const MAX_HISTORY = 20
 const MAX_MESSAGE_LEN = 2000
 
-export async function handleChat(rawHistory: unknown): Promise<ChatResponse> {
+export async function handleChat(rawHistory: unknown, rawSessionId?: unknown): Promise<ChatResponse> {
   if (!process.env.GIGACHAT_CREDENTIALS) {
     return { reply: 'Чат временно недоступен. Напишите Виталию напрямую: https://t.me/ramcy_graffiti' }
   }
@@ -239,7 +267,15 @@ export async function handleChat(rawHistory: unknown): Promise<ChatResponse> {
     throw new Error('empty history')
   }
 
-  const messages: ChatMessage[] = [{ role: 'system', content: SYSTEM_PROMPT }, ...history]
+  const sessionId = typeof rawSessionId === 'string' && /^[a-zA-Z0-9_-]{16,80}$/.test(rawSessionId) ? rawSessionId : ''
+  const pendingFiles = sessionId ? db.prepare(`
+    SELECT original_name, description FROM application_files
+    WHERE session_id = ? AND application_id IS NULL ORDER BY created_at
+  `).all(sessionId) as Array<{ original_name: string; description: string }> : []
+  const fileContext = pendingFiles.length
+    ? `\n\nКЛИЕНТ ПРИКРЕПИЛ ФАЙЛЫ:\n${pendingFiles.map((f, i) => `${i + 1}. ${f.original_name}${f.description ? ` — ${f.description}` : ''}`).join('\n')}\nФайлы будут автоматически добавлены к заявке; не проси отправлять их повторно.`
+    : ''
+  const messages: ChatMessage[] = [{ role: 'system', content: SYSTEM_PROMPT + fileContext }, ...history]
   let result = await chatCompletion(messages, FUNCTIONS)
 
   for (let i = 0; i < 2 && result.message.function_call; i++) {
@@ -254,8 +290,10 @@ export async function handleChat(rawHistory: unknown): Promise<ChatResponse> {
         fnResult = { ok: false, error: `Не хватает данных (${invalid}). Доспроси клиента и вызови функцию снова.` }
       } else {
         const id = createApplication(fc.arguments || {})
+        const files = attachApplicationFiles(id, sessionId)
         await notifyApplication(id, fc.arguments || {}).catch((e) => console.error('[chat] telegram notify failed:', e))
-        fnResult = { ok: true, application_id: id }
+        await notifyApplicationFiles(id, files)
+        fnResult = { ok: true, application_id: id, files_attached: files.length }
         submitted = true
       }
     } else if (fc.name === 'contact_admin') {

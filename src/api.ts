@@ -105,15 +105,16 @@ export const api = {
     request(`/reviews/${id}`, { method: 'DELETE' }),
 
   // Chat
-  chatSend: (messages: Array<{ role: 'user' | 'assistant'; content: string }>) =>
+  chatSend: (messages: Array<{ role: 'user' | 'assistant'; content: string }>, sessionId: string) =>
     request<{ reply: string; submitted?: boolean; model?: string }>('/chat', {
       method: 'POST',
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, session_id: sessionId }),
     }),
-  chatUploadFile: (file: File) => {
+  chatUploadFile: (file: File, sessionId: string) => {
     const formData = new FormData()
     formData.append('file', file)
-    return uploadFiles<{ ok: boolean; filename: string }>('/chat/file', formData)
+    formData.append('session_id', sessionId)
+    return uploadFiles<{ ok: boolean; id: number; filename: string }>('/chat/file', formData)
   },
 
   // Applications

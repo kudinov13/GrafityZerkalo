@@ -10,6 +10,7 @@ const dbPath = join(__dirname, 'data.db')
 const db = new Database(dbPath)
 
 db.pragma('journal_mode = WAL')
+db.pragma('foreign_keys = ON')
 
 // Создаём таблицы
 db.exec(`
@@ -77,6 +78,20 @@ db.exec(`
     admin_comment TEXT DEFAULT '',
     created_at TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS application_files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    application_id INTEGER,
+    session_id TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (application_id) REFERENCES applications(id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_application_files_session ON application_files(session_id);
+  CREATE INDEX IF NOT EXISTS idx_application_files_application ON application_files(application_id);
 `)
 
 const applicationColumns = db.prepare('PRAGMA table_info(applications)').all() as Array<{ name: string }>

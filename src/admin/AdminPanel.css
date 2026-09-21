@@ -763,6 +763,12 @@
 .admin-app-field { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
 .admin-app-field span { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; }
 .admin-app-field strong { font-weight: 500; overflow-wrap: anywhere; }
+.admin-app-files { display: flex; gap: 12px; margin: 16px 0; overflow-x: auto; }
+.admin-app-files figure { flex: 0 0 150px; margin: 0; }
+.admin-app-files img, .admin-app-file { width: 150px; height: 150px; border: 1px solid var(--line); object-fit: cover; cursor: zoom-in; }
+.admin-app-file { display: grid; place-items: center; padding: 12px; color: var(--paper); font-size: 11px; text-align: center; }
+.admin-app-files figcaption { display: flex; flex-direction: column; gap: 3px; padding-top: 6px; font-size: 10px; overflow-wrap: anywhere; }
+.admin-app-files figcaption span { color: var(--muted); }
 .admin-app-comment { display: flex; gap: 10px; align-items: flex-end; }
 .admin-app-comment textarea { flex: 1; padding: 8px 10px; border: 1px solid var(--line); background: #10100f; color: var(--paper); font-size: 13px; resize: vertical; }
 .admin-app-comment button { padding: 8px 14px; border: 1px solid var(--line); background: transparent; color: var(--paper); cursor: pointer; font-size: 12px; }

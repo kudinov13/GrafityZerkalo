@@ -30,6 +30,7 @@ type Application = {
   status: string
   admin_comment: string
   created_at: string
+  files: Array<{ id: number; filename: string; original_name: string; description: string }>
 }
 
 const APPLICATION_STATUSES: Record<string, string> = {
@@ -361,7 +362,7 @@ function ReviewsManager({ onRefresh, onZoom }: { onRefresh: () => void; onZoom: 
   )
 }
 
-function ApplicationsManager() {
+function ApplicationsManager({ onZoom }: { onZoom: (src: string) => void }) {
   const [apps, setApps] = useState<Application[]>([])
   const [drafts, setDrafts] = useState<Record<number, string>>({})
 
@@ -441,6 +442,24 @@ function ApplicationsManager() {
             {field('Доставка', a.delivery_method)}
             {field('Комментарий', a.comment)}
           </div>
+          {a.files?.length > 0 && (
+            <div className="admin-app-files">
+              {a.files.map((file) => {
+                const url = `/uploads/${file.filename}`
+                const isImage = /\.(jpe?g|png|webp|gif|svg)$/i.test(file.original_name)
+                return (
+                  <figure key={file.id}>
+                    {isImage ? (
+                      <img src={url} alt={file.original_name} onClick={() => onZoom(url)} />
+                    ) : (
+                      <a className="admin-app-file" href={url} target="_blank" rel="noreferrer">Скачать файл</a>
+                    )}
+                    <figcaption><strong>{file.original_name}</strong>{file.description && <span>{file.description}</span>}</figcaption>
+                  </figure>
+                )
+              })}
+            </div>
+          )}
           <div className="admin-app-comment">
             <textarea
               rows={2}
@@ -647,7 +666,7 @@ export default function AdminPanel({ onExit }: { onExit: () => void }) {
       )}
 
       {tab === 'applications' && (
-        <ApplicationsManager />
+        <ApplicationsManager onZoom={setLightbox} />
       )}
 
       {loading && <div className="admin-overlay">Сохранение...</div>}

@@ -22,7 +22,16 @@ function linkify(text: string) {
   )
 }
 
+function getChatSessionId(): string {
+  const existing = sessionStorage.getItem('ramcy_chat_session')
+  if (existing) return existing
+  const id = crypto.randomUUID().replace(/-/g, '')
+  sessionStorage.setItem('ramcy_chat_session', id)
+  return id
+}
+
 export default function ChatWidget() {
+  const sessionId = useRef(getChatSessionId())
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Msg[]>([GREETING])
   const [input, setInput] = useState('')
@@ -46,7 +55,7 @@ export default function ChatWidget() {
       const history = [...messages, { role: 'user' as const, content }]
         .filter((m) => m.role === 'user' || m.role === 'assistant')
         .map((m) => ({ role: m.role, content: m.content }))
-      const res = await api.chatSend(history)
+      const res = await api.chatSend(history, sessionId.current)
       push({ role: 'assistant', content: res.reply })
     } catch (err) {
       push({
@@ -63,8 +72,8 @@ export default function ChatWidget() {
     setSending(true)
     push({ role: 'user', content: `📎 ${file.name}`, file: true })
     try {
-      await api.chatUploadFile(file)
-      push({ role: 'assistant', content: 'Файл получен и уже у Виталия ✅ Расскажите, что на нём — или продолжим оформление заявки.' })
+      await api.chatUploadFile(file, sessionId.current)
+      push({ role: 'assistant', content: 'Файл прикреплён к будущей заявке ✅ Напишите следующим сообщением, что изображено на нём и как использовать это в дизайне зеркала.' })
     } catch {
       push({ role: 'assistant', content: 'Не удалось отправить файл (до 20 МБ: jpg, png, webp, svg, ai, pdf, zip). Попробуйте ещё раз или пришлите файл Виталию: https://t.me/ramcy_graffiti' })
     } finally {

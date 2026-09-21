@@ -10,7 +10,7 @@ import fs from 'fs'
 import db from './db.js'
 import { authMiddleware, generateToken, AuthRequest } from './auth.js'
 import { handleChat } from './chat.js'
-import { sendDocument, sendMessage } from './telegram.js'
+import { sendMessage } from './telegram.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -336,7 +336,18 @@ app.post('/api/chat', async (req, res) => {
   chatRateLimit.set(ip, hits)
 
   try {
-    const result = await handleChat(req.body?.messages)
+    const sessionId = typeof req.body?.session_id === 'string' && /^[a-zA-Z0-9_-]{16,80}$/.test(req.body.session_id)
+      ? req.body.session_id
+      : ''
+    const messages = Array.isArray(req.body?.messages) ? req.body.messages : []
+    const latestUserMessage = [...messages].reverse().find((message) => message?.role === 'user' && typeof message?.content === 'string')
+    if (sessionId && latestUserMessage?.content) {
+      db.prepare(`
+        UPDATE application_files SET description = ?
+        WHERE session_id = ? AND application_id IS NULL AND description = ''
+      `).run(String(latestUserMessage.content).slice(0, 1000), sessionId)
+    }
+    const result = await handleChat(messages, sessionId)
     res.json(result)
   } catch (err) {
     console.error('[chat] error:', err)
@@ -346,7 +357,7 @@ app.post('/api/chat', async (req, res) => {
   }
 })
 
-// Файлы из чата (эскизы, фото): сохраняем и пересылаем в Telegram
+// Файлы из чата сохраняются до создания заявки и привязываются по session_id
 const chatUpload = multer({
   storage,
   limits: { fileSize: 20 * 1024 * 1024 },
@@ -361,21 +372,21 @@ const chatUpload = multer({
   },
 })
 
-app.post('/api/chat/file', chatUpload.single('file'), async (req, res) => {
+app.post('/api/chat/file', chatUpload.single('file'), (req, res) => {
   const file = req.file
-  if (!file) {
-    res.status(400).json({ error: 'Нет файла' })
+  const sessionId = typeof req.body?.session_id === 'string' && /^[a-zA-Z0-9_-]{16,80}$/.test(req.body.session_id)
+    ? req.body.session_id
+    : ''
+  if (!file || !sessionId) {
+    if (file && fs.existsSync(file.path)) fs.unlinkSync(file.path)
+    res.status(400).json({ error: !file ? 'Нет файла' : 'Некорректная сессия чата' })
     return
   }
-  try {
-    await sendDocument(
-      join(uploadsDir, file.filename),
-      `Файл из чат-бота: ${file.originalname}`,
-    )
-  } catch (err) {
-    console.error('[chat] telegram document failed:', err)
-  }
-  res.json({ ok: true, filename: file.filename })
+  const result = db.prepare(`
+    INSERT INTO application_files (session_id, filename, original_name)
+    VALUES (?, ?, ?)
+  `).run(sessionId, file.filename, file.originalname.slice(0, 255))
+  res.json({ ok: true, id: Number(result.lastInsertRowid), filename: file.filename })
 })
 
 // ============ APPLICATIONS ============
@@ -406,8 +417,8 @@ app.post('/api/applications', async (req, res) => {
     return
   }
   const result = db.prepare(`
-    INSERT INTO applications (name, phone, email, contact_method, contact_details, messenger_contact, design_idea, source)
-    VALUES (?, ?, ?, ?, ?, ?, ?, 'form')
+    INSERT INTO applications (name, phone, email, contact_method, contact_details, messenger_contact, design_idea, delivery_method, source)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'Обсудить лично с Виталием', 'form')
   `).run(
     String(name).slice(0, 120),
     String(phone).slice(0, 40),
@@ -434,8 +445,12 @@ app.post('/api/applications', async (req, res) => {
 })
 
 app.get('/api/applications', authMiddleware, (req, res) => {
-  const apps = db.prepare('SELECT * FROM applications ORDER BY created_at DESC').all()
-  res.json(apps)
+  const apps = db.prepare('SELECT * FROM applications ORDER BY created_at DESC').all() as Array<Record<string, unknown> & { id: number }>
+  const getFiles = db.prepare(`
+    SELECT id, filename, original_name, description FROM application_files
+    WHERE application_id = ? ORDER BY created_at
+  `)
+  res.json(apps.map((application) => ({ ...application, files: getFiles.all(application.id) })))
 })
 
 const APPLICATION_STATUSES = ['new', 'in_progress', 'contacted', 'done', 'cancelled']
@@ -461,7 +476,12 @@ app.patch('/api/applications/:id', authMiddleware, (req, res) => {
 })
 
 app.delete('/api/applications/:id', authMiddleware, (req, res) => {
+  const files = db.prepare('SELECT filename FROM application_files WHERE application_id = ?').all(req.params.id) as Array<{ filename: string }>
   db.prepare('DELETE FROM applications WHERE id = ?').run(req.params.id)
+  for (const file of files) {
+    const filePath = join(uploadsDir, file.filename)
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath)
+  }
   res.json({ ok: true })
 })
 

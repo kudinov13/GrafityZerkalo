@@ -2,10 +2,14 @@ import https from 'https'
 import fs from 'fs'
 import crypto from 'crypto'
 import { basename } from 'path'
+import { HttpsProxyAgent } from 'https-proxy-agent'
+
+const proxyUrl = process.env.TELEGRAM_PROXY_URL
+const proxyAgent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined
 
 function request(url: string, headers: Record<string, string>, body: Buffer): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
-    const req = https.request(url, { method: 'POST', headers: { ...headers, 'Content-Length': body.length } }, (res) => {
+    const req = https.request(url, { method: 'POST', agent: proxyAgent, headers: { ...headers, 'Content-Length': body.length } }, (res) => {
       const chunks: Buffer[] = []
       res.on('data', (c) => chunks.push(c))
       res.on('end', () => resolve({ status: res.statusCode || 0, body: Buffer.concat(chunks).toString('utf-8') }))
