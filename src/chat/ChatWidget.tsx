@@ -23,10 +23,20 @@ function linkify(text: string) {
 }
 
 function getChatSessionId(): string {
-  const existing = sessionStorage.getItem('ramcy_chat_session')
-  if (existing) return existing
-  const id = crypto.randomUUID().replace(/-/g, '')
-  sessionStorage.setItem('ramcy_chat_session', id)
+  try {
+    const existing = sessionStorage.getItem('ramcy_chat_session')
+    if (existing) return existing
+  } catch {}
+  const bytes = new Uint8Array(16)
+  if (globalThis.crypto?.getRandomValues) {
+    globalThis.crypto.getRandomValues(bytes)
+  } else {
+    for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256)
+  }
+  const id = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('')
+  try {
+    sessionStorage.setItem('ramcy_chat_session', id)
+  } catch {}
   return id
 }
 

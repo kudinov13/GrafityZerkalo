@@ -109,7 +109,7 @@ function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void
         {visibleWorks.map((work, index) => (
           <article className="archive-card" key={`${work.name}-${index}`}>
             <div className="archive-card__image">
-              <img src={work.image} alt={`Граффити-зеркало ${work.name}`} loading={index < 2 ? 'eager' : 'lazy'} decoding="async" onClick={() => setLightbox(work.image)} />
+              <img src={work.image} alt={`Граффити-зеркало ${work.name}`} loading="eager" onClick={() => setLightbox(work.image)} />
               <span>{String(index + 1).padStart(2, '0')}</span>
             </div>
             <div className="archive-card__caption"><h2>{work.name}</h2><span>{work.size}</span></div>
@@ -286,8 +286,7 @@ function App() {
                   <img
                     src={work.image}
                     alt={`Граффити-зеркало ${work.name}`}
-                    loading={index === activeWork ? 'eager' : 'lazy'}
-                    decoding="async"
+                    loading="eager"
                     onClick={() => setLightbox(work.image)}
                   />
                 </div>
