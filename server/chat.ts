@@ -48,13 +48,14 @@ const SYSTEM_PROMPT = `Ты — бот-помощник RAMCY на сайте gr
 - Telegram: https://t.me/ramcy_graffiti (@ramcy_graffiti)
 
 ЗАЯВКА — ОБЯЗАТЕЛЬНЫЙ ПОШАГОВЫЙ СЦЕНАРИЙ
-Когда клиент хочет заказать или описывает желаемое зеркало, собери: имя; город; ширину; идею дизайна; цвет; НОМЕР ТЕЛЕФОНА; EMAIL; канал связи (только Telegram, VK или MAX); проверенный контакт выбранного канала; удобное время; способ доставки.
+Когда клиент хочет заказать или описывает желаемое зеркало, собери: имя; город; ширину; идею дизайна; цвет; НОМЕР ТЕЛЕФОНА; EMAIL; канал связи (только Telegram, VK или WhatsApp); проверенный контакт выбранного канала; удобное время; способ доставки.
 - Номер телефона и email спрашивай ВСЕГДА отдельным вопросом, даже если клиент уже назвал имя, город, размер и дизайн. Email обязателен для заявки через чат.
-- После телефона и email спроси: «Где с вами удобнее связаться: Telegram, VK или MAX?»
+- После телефона и email спроси: «Где с вами удобнее связаться: Telegram, VK или WhatsApp?»
 - Если Telegram: запроси @username или ссылку строго вида https://t.me/username. Не принимай просто имя без @/ссылки.
 - Если VK: обязательно запроси полную ссылку на личную страницу клиента вида https://vk.com/username или https://vk.ru/username.
-- Если MAX: спроси, зарегистрирован ли MAX на номере телефона, указанном ранее. Если да — в messenger_contact передай тот же телефон. Если нет — обязательно запроси отдельный номер MAX; тогда phone — основной номер для звонка, messenger_contact — отдельный номер MAX.
+- Если WhatsApp: спроси, зарегистрирован ли WhatsApp на номере телефона, указанном ранее. Если да — в messenger_contact передай тот же телефон. Если нет — обязательно запроси отдельный номер WhatsApp; тогда phone — основной номер для звонка, messenger_contact — отдельный номер WhatsApp.
 - Потом спроси только удобное время связи. Способ доставки НЕ спрашивай: он всегда обсуждается лично с Виталием.
+- Ответы «сейчас», «сразу», «как можно скорее» принимай как удобное время — не переспрашивай. Финальное сообщение уже говорит, что Виталий свяжется скоро.
 - Заказ зеркала в форме логотипа, тега, надписи или по картинке клиента — это ОБЫЧНЫЙ заказ, а не вопрос вне базы знаний. Веди его как заявку: предложи прикрепить файл, собирай обязательные поля и вызывай submit_application.
 - Если клиент упоминает логотип, фото, картинку, скетч или макет — САМ предложи прикрепить файл кнопкой-скрепкой рядом с полем ввода. Не жди, пока клиент спросит, можно ли прислать фото.
 - Если клиент прикрепил файл, учти его имя и описание из системного сообщения о приложенных файлах. Укажи это в design_idea/comment заявки. Файлы сервер автоматически привяжет к заявке.
@@ -86,8 +87,8 @@ const FUNCTIONS: GigaFunction[] = [
         colors: { type: 'string', description: 'Желаемые цвета контуров' },
         phone: { type: 'string', description: 'Обязательный основной номер телефона клиента для звонка' },
         email: { type: 'string', description: 'Обязательный email клиента' },
-        contact_method: { type: 'string', enum: ['telegram', 'vk', 'max'], description: 'Выбранный канал связи: только telegram, vk или max' },
-        messenger_contact: { type: 'string', description: 'Проверенный контакт мессенджера: Telegram @username или https://t.me/username; полная ссылка VK; для MAX номер телефона аккаунта' },
+        contact_method: { type: 'string', enum: ['telegram', 'vk', 'whatsapp'], description: 'Выбранный канал связи: только telegram, vk или whatsapp' },
+        messenger_contact: { type: 'string', description: 'Проверенный контакт мессенджера: Telegram @username или https://t.me/username; полная ссылка VK; для WhatsApp номер телефона аккаунта' },
         contact_time: { type: 'string', description: 'Удобное время связи' },
         delivery_method: { type: 'string', enum: ['Обсудить лично с Виталием'], description: 'Всегда точное значение: Обсудить лично с Виталием' },
         comment: { type: 'string', description: 'Комментарий клиента' },
@@ -144,15 +145,15 @@ function validApplication(a: Record<string, unknown>, history: ChatMessage[]): s
 
   const method = String(a.contact_method).toLowerCase()
   const contact = String(a.messenger_contact).trim()
-  if (!['telegram', 'vk', 'max'].includes(method)) return 'invalid: канал связи должен быть Telegram, VK или MAX'
+  if (!['telegram', 'vk', 'whatsapp'].includes(method)) return 'invalid: канал связи должен быть Telegram, VK или WhatsApp'
   if (method === 'telegram' && !/^(@[a-zA-Z0-9_]{5,32}|https:\/\/t\.me\/[a-zA-Z0-9_]{5,32}\/?$)/.test(contact)) {
     return 'invalid: нужен Telegram @username или ссылка https://t.me/username'
   }
   if (method === 'vk' && !/^https:\/\/(vk\.com|vk\.ru)\/[a-zA-Z0-9_.-]+\/?$/i.test(contact)) {
     return 'invalid: нужна полная ссылка на личную страницу VK'
   }
-  if (method === 'max' && contact.replace(/\D/g, '').length < 10) {
-    return 'invalid: нужен номер телефона аккаунта MAX'
+  if (method === 'whatsapp' && contact.replace(/\D/g, '').length < 10) {
+    return 'invalid: нужен номер телефона аккаунта WhatsApp'
   }
 
   const userText = history.filter((m) => m.role === 'user').map((m) => m.content).join('\n')
@@ -163,8 +164,11 @@ function validApplication(a: Record<string, unknown>, history: ChatMessage[]): s
   if (!userText.toLowerCase().includes(String(a.email).toLowerCase())) return 'invalid: email не был указан клиентом'
   if (method === 'telegram' && !userText.toLowerCase().includes(contact.toLowerCase())) return 'invalid: Telegram-контакт не был указан клиентом'
   if (method === 'vk' && !userText.toLowerCase().includes(contact.toLowerCase())) return 'invalid: ссылка VK не была указана клиентом'
-  if (method === 'max' && !userDigits.includes(messengerDigits)) return 'invalid: номер MAX не был указан клиентом'
-  if (!/(утр|д[её]н|вечер|любое время|в любое|после \d|до \d|\d{1,2}[:.]\d{2})/i.test(userText)) {
+  if (method === 'whatsapp' && !userDigits.includes(messengerDigits)) return 'invalid: номер WhatsApp не был указан клиентом'
+  const timeValue = String(a.contact_time).toLowerCase().trim()
+  const timeEvidence = /(утр|д[её]н|вечер|ноч|сейчас|сразу|скор|когда угод|любое|в люб|прям|ближ|всегда|после \d|до \d|\d{1,2}[:.]\d{2})/i.test(userText)
+    || (timeValue.length > 2 && userText.toLowerCase().includes(timeValue))
+  if (!timeEvidence) {
     return 'missing: клиент не указал удобное время связи'
   }
   a.delivery_method = 'Обсудить лично с Виталием'

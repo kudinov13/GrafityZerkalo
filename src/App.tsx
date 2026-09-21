@@ -464,10 +464,10 @@ function App() {
               <option value="" disabled>Выберите мессенджер</option>
               <option value="telegram">Telegram</option>
               <option value="vk">VK</option>
-              <option value="max">MAX</option>
+              <option value="whatsapp">WhatsApp</option>
             </select>
           </label>
-          <label>Контакт в мессенджере<input type="text" name="messenger_contact" placeholder="Telegram @username / ссылка VK / номер MAX" required /></label>
+          <label>Контакт в мессенджере<input type="text" name="messenger_contact" placeholder="Telegram @username / ссылка VK / номер WhatsApp" required /></label>
           <label>Пожелания по размеру и дизайну<textarea name="idea" rows={4} placeholder="Какой размер зеркала хотите? Дизайн есть или придумать?" /></label>
           <button type="submit" disabled={formState === 'sending'}>
             {formState === 'sending' ? 'Отправляем…' : 'Отправить заявку'} <ArrowIcon />
