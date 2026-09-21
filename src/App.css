@@ -214,6 +214,7 @@ h2 em { color: var(--acid); font-style: normal; }
 .works-carousel__image { position: relative; overflow: hidden; aspect-ratio: 16 / 8; max-height: 560px; background: #24231f; }
 .works-carousel__track { display: flex; width: 100%; height: 100%; transition: transform 680ms cubic-bezier(.22,1,.36,1); will-change: transform; }
 .works-carousel__slide { flex: 0 0 100%; width: 100%; height: 100%; }
+.works-carousel__slide picture, .archive-card__image picture { display: block; width: 100%; height: 100%; }
 .works-carousel__slide img { width: 100%; height: 100%; object-fit: cover; }
 .works-carousel__image > span { position: absolute; right: 18px; bottom: 15px; z-index: 1; padding: 7px 9px; background: rgba(11,11,10,.78); color: #fff; font-size: 10px; letter-spacing: .14em; }
 .works-carousel__info { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(210px, .75fr) auto; grid-template-rows: auto auto; align-items: end; gap: 18px clamp(24px, 4vw, 58px); min-height: 180px; padding: clamp(24px, 3vw, 38px); border-top: 1px solid var(--line); }
@@ -255,7 +256,7 @@ h2 em { color: var(--acid); font-style: normal; }
 .archive-contact { display: flex; align-items: center; gap: 15px; width: max-content; margin: 0 auto 100px; padding-bottom: 8px; border-bottom: 1px solid currentColor; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-decoration: none; text-transform: uppercase; }
 .archive-contact svg { width: 19px; fill: none; stroke: currentColor; stroke-width: 1.8; }
 
-.manifesto { position: relative; display: flex; flex-direction: column; justify-content: space-between; min-height: clamp(500px, 58vw, 720px); overflow: hidden; padding: clamp(52px, 6vw, 88px) 5vw; background: url('/images/1-optimized.webp') right center / cover no-repeat, #070706; color: #fff; }
+.manifesto { position: relative; display: flex; flex-direction: column; justify-content: space-between; min-height: clamp(500px, 58vw, 720px); overflow: hidden; padding: clamp(52px, 6vw, 88px) 5vw; background: url('/images/1-optimized.webp?v=20260921e') right center / cover no-repeat, #070706; color: #fff; }
 .manifesto__line { display: flex; flex-direction: column; align-items: flex-start; font: 700 clamp(70px, 11vw, 178px)/.82 var(--display); letter-spacing: -.06em; }
 .manifesto__script { margin-left: 12vw; color: #d8d4cc; font: 500 clamp(38px, 5.5vw, 86px)/.95 var(--display); letter-spacing: -.045em; transform: rotate(-2deg); }
 .manifesto__copy { display: flex; justify-content: space-between; margin-top: auto; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.45); font-size: 11px; text-transform: uppercase; letter-spacing: .14em; }
@@ -264,6 +265,7 @@ h2 em { color: var(--acid); font-style: normal; }
 
 .artist { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(48px, 7vw, 110px); align-items: center; background: var(--paper); color: var(--ink); }
 .artist__photo { position: relative; max-width: 680px; }
+.artist__photo picture { display: block; }
 .artist__photo img { width: 100%; aspect-ratio: 5 / 6; object-fit: cover; filter: grayscale(.2); }
 .artist__photo > span { position: absolute; right: -38px; bottom: 80px; padding: 13px 20px; background: var(--acid); color: var(--ink); font-size: 10px; font-weight: 700; letter-spacing: .15em; transform: rotate(-90deg); }
 .artist__text > p:not(.eyebrow) { max-width: 580px; margin: 32px 0 0; color: #4d4b47; font-size: clamp(15px, 1.2vw, 19px); line-height: 1.65; }
@@ -316,6 +318,7 @@ h2 em { color: var(--acid); font-style: normal; }
 .reviews-feed__track { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none; }
 .reviews-feed__track::-webkit-scrollbar { display: none; }
 .reviews-feed__item { flex: 0 0 auto; width: clamp(260px, 22vw, 340px); aspect-ratio: 9 / 16; margin: 0; scroll-snap-align: center; overflow: hidden; background: #111; }
+.reviews-feed__item picture { display: block; width: 100%; height: 100%; }
 .reviews-feed__item img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .reviews-feed__nav { display: grid; place-items: center; width: 48px; height: 48px; border: 1px solid rgba(11,11,10,.25); background: var(--paper); color: var(--ink); cursor: pointer; transition: background 180ms ease, color 180ms ease; }
 .reviews-feed__nav:hover { background: var(--ink); color: var(--paper); }
@@ -332,7 +335,7 @@ summary i { font: 300 29px/1 var(--body); transition: transform 220ms ease; }
 details[open] summary i { transform: rotate(45deg); }
 details > p { max-width: 650px; margin: -12px 48px 35px 58px; color: var(--muted); font-size: 14px; line-height: 1.7; }
 
-.contact { position: relative; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(50px, 9vw, 140px); min-height: 700px; overflow: hidden; padding: clamp(84px, 8vw, 130px) clamp(20px, 5vw, 82px) 170px; background: #10100f url('/images/Phone_last.webp') center / cover no-repeat; color: #e9e3d8; }
+.contact { position: relative; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(50px, 9vw, 140px); min-height: 700px; overflow: hidden; padding: clamp(84px, 8vw, 130px) clamp(20px, 5vw, 82px) 170px; background: #10100f url('/images/Phone_last.webp?v=20260921e') center / cover no-repeat; color: #e9e3d8; }
 .contact::before, .contact::after { content: ""; position: absolute; pointer-events: none; z-index: 0; inset: 0; }
 .contact::before { background: linear-gradient(90deg, rgba(16,16,15,.92) 0%, rgba(16,16,15,.7) 45%, rgba(16,16,15,.35) 100%); }
 .contact::after { background: linear-gradient(0deg, rgba(16,16,15,.7), transparent 55%); }
@@ -428,7 +431,7 @@ footer small { color: var(--muted); }
   .archive-card__caption span { display: block; margin-top: 7px; }
   .archive-contact { margin-bottom: 70px; }
   .work__caption h3 { font-size: 28px; }
-  .manifesto { padding: 18px 18px 18px; background: url('/images/Mobile/Mobile-3.webp') center 45% / 130% auto no-repeat, #070706; }
+  .manifesto { padding: 18px 18px 18px; background: url('/images/Mobile/Mobile-3-v2.webp?v=20260921e') center 45% / 130% auto no-repeat, #070706; }
   .manifesto__line { display: block; font-size: 24vw; text-align: left; }
   .manifesto__script { display: block; margin: 18px 0 0 18vw; font-size: 14vw; }
   .manifesto__copy { margin-top: 55px; padding-top: 8px; font-size: 9px; }
@@ -460,7 +463,7 @@ footer small { color: var(--muted); }
   .reviews-feed__nav { display: none; }
   summary { grid-template-columns: 28px 1fr auto; min-height: 92px; font-size: 14px; }
   details > p { margin: -5px 30px 25px 42px; font-size: 12px; }
-  .contact { min-height: auto; padding: 88px 18px 180px; }
+  .contact { min-height: auto; padding: 88px 18px 180px; background-image: url('/images/Phone_last-mobile.webp?v=20260921e'); }
   .contact__lead > p:not(.eyebrow) { font-size: 14px; }
   .contact__lead > a { margin-top: 32px; }
   .contact__form input, .contact__form textarea { font-size: 15px; }

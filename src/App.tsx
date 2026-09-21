@@ -6,6 +6,15 @@ import Lightbox from './Lightbox'
 import './admin/AdminPanel.css'
 import { api } from './api'
 
+const ASSET_VERSION = '20260921e'
+const assetUrl = (src: string) => src.startsWith('/images/') ? `${src}?v=${ASSET_VERSION}` : src
+const mobileWorkUrl = (src: string) => src.startsWith('/images/IMG_') && src.endsWith('.webp')
+  ? assetUrl(src.replace('.webp', '-mobile.webp'))
+  : assetUrl(src)
+const mobileReviewUrl = (src: string) => src.startsWith('/images/IMG_') && src.endsWith('.jpeg')
+  ? assetUrl(src.replace('.jpeg', '-mobile.jpg'))
+  : assetUrl(src)
+
 const fallbackWorks = [
   { name: 'Mash', size: '90 см', image: '/images/IMG_9801.webp' },
   { name: 'Ustyles', size: '60 см', image: '/images/IMG_7579.webp' },
@@ -79,7 +88,7 @@ function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void
   return (
     <main className="archive-page">
       <header className="archive-header">
-        <a className="brand" href="#top" onClick={goBack} aria-label="Vitaliy Ramcy, на главную"><img src="/images/GrafitLogo.webp" alt="VITALIY RAMCY" /></a>
+        <a className="brand" href="#top" onClick={goBack} aria-label="Vitaliy Ramcy, на главную"><img src={assetUrl('/images/GrafitLogo.webp')} alt="VITALIY RAMCY" /></a>
         <nav id="archive-navigation" className={menuOpen ? 'nav nav--open' : 'nav'} aria-label="Основная навигация">
           <a href="#works" onClick={goBack}>Работы</a>
           <a href="#artist" onClick={goBack}>Автор</a>
@@ -109,7 +118,10 @@ function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void
         {visibleWorks.map((work, index) => (
           <article className="archive-card" key={`${work.name}-${index}`}>
             <div className="archive-card__image">
-              <img src={work.image} alt={`Граффити-зеркало ${work.name}`} loading="eager" onClick={() => setLightbox(work.image)} />
+              <picture>
+                <source media="(max-width: 680px)" srcSet={mobileWorkUrl(work.image)} />
+                <img src={assetUrl(work.image)} alt={`Граффити-зеркало ${work.name}`} loading={index < 2 ? 'eager' : 'lazy'} onClick={() => setLightbox(assetUrl(work.image))} />
+              </picture>
               <span>{String(index + 1).padStart(2, '0')}</span>
             </div>
             <div className="archive-card__caption"><h2>{work.name}</h2><span>{work.size}</span></div>
@@ -213,7 +225,7 @@ function App() {
     <main>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Vitaliy Ramcy, на главную">
-          <img src="/images/GrafitLogo.webp" alt="VITALIY RAMCY" />
+          <img src={assetUrl('/images/GrafitLogo.webp')} alt="VITALIY RAMCY" />
         </a>
         <button
           className="menu-button"
@@ -239,8 +251,8 @@ function App() {
       <section className="hero" id="top">
         <div className="hero__media" aria-hidden="true">
           <picture>
-            <source media="(max-width: 680px)" srcSet="/images/Mobile/Hero-mobile.webp" />
-            <img src="/images/Hero_Desktop.webp" alt="" fetchPriority="high" />
+            <source media="(max-width: 680px)" srcSet={assetUrl('/images/Mobile/Hero-mobile-v2.webp')} />
+            <img src={assetUrl('/images/Hero_Desktop.webp')} alt="" fetchPriority="high" />
           </picture>
         </div>
         <div className="hero__shade" />
@@ -283,12 +295,17 @@ function App() {
             <div className="works-carousel__track" style={{ transform: `translate3d(-${activeWork * 100}%, 0, 0)` }}>
               {works.map((work, index) => (
                 <div className="works-carousel__slide" key={`${work.name}-${index}`}>
-                  <img
-                    src={work.image}
-                    alt={`Граффити-зеркало ${work.name}`}
-                    loading="eager"
-                    onClick={() => setLightbox(work.image)}
-                  />
+                  {Math.abs(index - activeWork) <= 1 && (
+                    <picture>
+                      <source media="(max-width: 680px)" srcSet={mobileWorkUrl(work.image)} />
+                      <img
+                        src={assetUrl(work.image)}
+                        alt={`Граффити-зеркало ${work.name}`}
+                        loading="eager"
+                        onClick={() => setLightbox(assetUrl(work.image))}
+                      />
+                    </picture>
+                  )}
                 </div>
               ))}
             </div>
@@ -324,7 +341,10 @@ function App() {
 
       <section className="artist section" id="artist">
         <div className="artist__photo" data-reveal>
-          <img src="/images/ramcy.webp" alt="Виталий RAMCY за работой" loading="lazy" />
+          <picture>
+            <source media="(max-width: 680px)" srcSet={assetUrl('/images/ramcy-mobile.webp')} />
+            <img src={assetUrl('/images/ramcy.webp')} alt="Виталий RAMCY за работой" loading="lazy" />
+          </picture>
           <span>RAMCY / MOSCOW</span>
         </div>
         <div className="artist__text" data-reveal>
@@ -363,8 +383,8 @@ function App() {
 
       <section className="campaign" aria-label="Граффити-зеркала в интерьере">
         <picture>
-          <source media="(max-width: 680px)" srcSet="/images/Mobile/Mobile-2.webp" />
-          <img src="/images/3.webp" alt="Девушка держит граффити-зеркало на фоне серой бетонной стены" loading="lazy" />
+          <source media="(max-width: 680px)" srcSet={assetUrl('/images/Mobile/Mobile-2-v2.webp')} />
+          <img src={assetUrl('/images/3.webp')} alt="Девушка держит граффити-зеркало на фоне серой бетонной стены" loading="lazy" />
         </picture>
         <div className="campaign__overlay" />
         <div className="campaign__content" data-reveal>
@@ -424,7 +444,10 @@ function App() {
           <div className="reviews-feed__track" ref={reviewTrackRef}>
             {reviews.map((image, i) => (
               <figure className="reviews-feed__item" key={i}>
-                <img src={image} alt="Отзыв клиента" loading="lazy" decoding="async" onClick={() => setLightbox(image)} />
+                <picture>
+                  <source media="(max-width: 680px)" srcSet={mobileReviewUrl(image)} />
+                  <img src={assetUrl(image)} alt="Отзыв клиента" loading="lazy" onClick={() => setLightbox(assetUrl(image))} />
+                </picture>
               </figure>
             ))}
           </div>
@@ -478,7 +501,7 @@ function App() {
       </section>
 
       <footer>
-        <a className="brand" href="#top"><img src="/images/GrafitLogo.webp" alt="VITALIY RAMCY" /></a>
+        <a className="brand" href="#top"><img src={assetUrl('/images/GrafitLogo.webp')} alt="VITALIY RAMCY" /></a>
         <p><span onClick={() => { window.location.hash = 'admin'; setAdminOpen(true) }}>Граффити</span>-зеркала · Москва</p>
         <div>
           <a href="tel:+79778665350">+7 977 866-53-50</a>
