@@ -18,8 +18,11 @@ type Application = {
   design_idea: string
   sketch_type: string
   colors: string
+  phone: string
+  email: string
   contact_method: string
   contact_details: string
+  messenger_contact: string
   contact_time: string
   delivery_method: string
   comment: string
@@ -431,7 +434,9 @@ function ApplicationsManager() {
             {field('Дизайн', a.design_idea)}
             {field('Эскиз', a.sketch_type)}
             {field('Цвета', a.colors)}
-            {field('Связь', [a.contact_method, a.contact_details].filter(Boolean).join(' — ') || undefined)}
+            {field('Телефон', a.phone)}
+            {field('Email', a.email)}
+            {field('Связь', [a.contact_method, a.messenger_contact || a.contact_details].filter(Boolean).join(' — ') || undefined)}
             {field('Удобное время', a.contact_time)}
             {field('Доставка', a.delivery_method)}
             {field('Комментарий', a.comment)}

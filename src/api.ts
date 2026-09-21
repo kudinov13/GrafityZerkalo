@@ -117,7 +117,7 @@ export const api = {
   },
 
   // Applications
-  submitApplication: (data: { name: string; contact_details: string; design_idea?: string }) =>
+  submitApplication: (data: { name: string; phone: string; email?: string; contact_method: string; messenger_contact: string; design_idea?: string }) =>
     request<{ ok: boolean; id: number }>('/applications', { method: 'POST', body: JSON.stringify(data) }),
   getApplications: () => request<Array<Record<string, unknown>>>('/applications'),
   updateApplication: (id: number, data: { status?: string; admin_comment?: string }) =>

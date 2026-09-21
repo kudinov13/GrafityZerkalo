@@ -392,21 +392,40 @@ app.post('/api/applications', async (req, res) => {
   hits.push(now)
   chatRateLimit.set(`form:${ip}`, hits)
 
-  const { name, contact_details, design_idea } = req.body as Record<string, string>
-  if (!name?.trim() || !contact_details?.trim()) {
-    res.status(400).json({ error: 'Укажите имя и контакт для связи' })
+  const { name, phone, email, contact_method, messenger_contact, design_idea } = req.body as Record<string, string>
+  if (!name?.trim() || !phone?.trim() || !contact_method?.trim() || !messenger_contact?.trim()) {
+    res.status(400).json({ error: 'Укажите имя, телефон, способ связи и контакт мессенджера' })
+    return
+  }
+  if (phone.replace(/\D/g, '').length < 10) {
+    res.status(400).json({ error: 'Укажите корректный номер телефона' })
+    return
+  }
+  if (email?.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+    res.status(400).json({ error: 'Укажите корректный email' })
     return
   }
   const result = db.prepare(`
-    INSERT INTO applications (name, contact_details, design_idea, source)
-    VALUES (?, ?, ?, 'form')
-  `).run(String(name).slice(0, 120), String(contact_details).slice(0, 200), String(design_idea || '').slice(0, 2000))
+    INSERT INTO applications (name, phone, email, contact_method, contact_details, messenger_contact, design_idea, source)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 'form')
+  `).run(
+    String(name).slice(0, 120),
+    String(phone).slice(0, 40),
+    String(email || '').slice(0, 200),
+    String(contact_method).slice(0, 40),
+    String(messenger_contact).slice(0, 300),
+    String(messenger_contact).slice(0, 300),
+    String(design_idea || '').slice(0, 2000),
+  )
 
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   try {
     await sendMessage(
       `<b>Новая заявка #${Number(result.lastInsertRowid)} (форма на сайте)</b>\n\n` +
-      `<b>Имя:</b> ${esc(String(name))}\n<b>Контакт:</b> ${esc(String(contact_details))}\n<b>Пожелания:</b> ${esc(String(design_idea || '—'))}`
+      `<b>Имя:</b> ${esc(String(name))}\n<b>Телефон:</b> ${esc(String(phone))}\n` +
+      `<b>Email:</b> ${esc(String(email || 'не указан'))}\n` +
+      `<b>Связь:</b> ${esc(String(contact_method))} — ${esc(String(messenger_contact))}\n` +
+      `<b>Пожелания:</b> ${esc(String(design_idea || '—'))}`
     )
   } catch (err) {
     console.error('[applications] telegram notify failed:', err)

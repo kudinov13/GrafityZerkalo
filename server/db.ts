@@ -64,8 +64,11 @@ db.exec(`
     design_idea TEXT DEFAULT '',
     sketch_type TEXT DEFAULT '',
     colors TEXT DEFAULT '',
+    phone TEXT DEFAULT '',
+    email TEXT DEFAULT '',
     contact_method TEXT DEFAULT '',
     contact_details TEXT DEFAULT '',
+    messenger_contact TEXT DEFAULT '',
     contact_time TEXT DEFAULT '',
     delivery_method TEXT DEFAULT '',
     comment TEXT DEFAULT '',
@@ -75,6 +78,18 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now'))
   );
 `)
+
+const applicationColumns = db.prepare('PRAGMA table_info(applications)').all() as Array<{ name: string }>
+const existingApplicationColumns = new Set(applicationColumns.map((column) => column.name))
+for (const [name, definition] of [
+  ['phone', "TEXT DEFAULT ''"],
+  ['email', "TEXT DEFAULT ''"],
+  ['messenger_contact', "TEXT DEFAULT ''"],
+] as const) {
+  if (!existingApplicationColumns.has(name)) {
+    db.exec(`ALTER TABLE applications ADD COLUMN ${name} ${definition}`)
+  }
+}
 
 // Создаём админа по умолчанию, если таблица пуста
 const adminExists = db.prepare('SELECT id FROM admins LIMIT 1').get()

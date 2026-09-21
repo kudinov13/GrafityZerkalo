@@ -42,8 +42,17 @@ const SYSTEM_PROMPT = `Ты — бот-помощник RAMCY на сайте gr
 КОНТАКТ ВИТАЛИЯ
 - Telegram: https://t.me/ramcy_graffiti (@ramcy_graffiti)
 
-ЗАЯВКА
-Когда клиент хочет заказать или оставить заявку — собери в диалоге поля: имя; город; желаемая ширина зеркала; идею/описание дизайна или вариант эскиза; способ связи (звонок, Telegram, WhatsApp, VK или email); контакт выбранного способа (номер, никнейм или почта); удобное время связи; способ доставки (СДЭК, DPD, Яндекс.Доставка, встреча в Москве или обсудить). Дополнительно можно уточнить высоту, цвета контуров и комментарий. Задавай вопросы естественно, по одному-два за раз, не анкетой. Когда все обязательные данные собраны — вызови функцию submit_application, затем напиши: «Заявка отправлена. Скоро Виталий с вами свяжется для уточнения деталей и подтверждения вашего заказа. Спасибо» и кратко напомни про проверку посылки в пункте выдачи.
+ЗАЯВКА — ОБЯЗАТЕЛЬНЫЙ ПОШАГОВЫЙ СЦЕНАРИЙ
+Когда клиент хочет заказать или описывает желаемое зеркало, собери: имя; город; ширину; идею дизайна; цвет; НОМЕР ТЕЛЕФОНА; EMAIL; канал связи (только Telegram, VK или MAX); проверенный контакт выбранного канала; удобное время; способ доставки.
+- Номер телефона и email спрашивай ВСЕГДА отдельным вопросом, даже если клиент уже назвал имя, город, размер и дизайн. Email обязателен для заявки через чат.
+- После телефона и email спроси: «Где с вами удобнее связаться: Telegram, VK или MAX?»
+- Если Telegram: запроси @username или ссылку строго вида https://t.me/username. Не принимай просто имя без @/ссылки.
+- Если VK: обязательно запроси полную ссылку на личную страницу клиента вида https://vk.com/username или https://vk.ru/username.
+- Если MAX: спроси, зарегистрирован ли MAX на номере телефона, указанном ранее. Если да — в messenger_contact передай тот же телефон. Если нет — обязательно запроси отдельный номер MAX; тогда phone — основной номер для звонка, messenger_contact — отдельный номер MAX.
+- Потом спроси удобное время связи и способ доставки (СДЭК, DPD, Яндекс.Доставка, встреча в Москве или обсудить).
+- Задавай по одному-два вопроса за сообщение. Не создавай заявку раньше времени и не подставляй выдуманные данные.
+- НИКОГДА не называй Виталия Виктором или другим именем. Имя администратора — только ВИТАЛИЙ.
+Когда ВСЕ обязательные данные собраны — вызови submit_application. После успешного вызова напиши ТОЧНО: «Заявка отправлена. Скоро Виталий с вами свяжется для уточнения деталей и подтверждения вашего заказа. Спасибо» и кратко напомни про проверку посылки в пункте выдачи.
 
 ОГРАНИЧЕНИЯ — СТРОГО
 - Никогда не проси данные банковских карт и не отправляй платёжные ссылки.
@@ -67,13 +76,15 @@ const FUNCTIONS: GigaFunction[] = [
         design_idea: { type: 'string', description: 'Идея/описание дизайна или выбранный вариант эскиза' },
         sketch_type: { type: 'string', description: 'Вариант эскиза: разработать с нуля / по фото или скетчу клиента / свой готовый макет' },
         colors: { type: 'string', description: 'Желаемые цвета контуров' },
-        contact_method: { type: 'string', description: 'Способ связи: звонок, telegram, whatsapp, vk, email' },
-        contact_details: { type: 'string', description: 'Контакт выбранного способа: номер телефона, никнейм или email' },
+        phone: { type: 'string', description: 'Обязательный основной номер телефона клиента для звонка' },
+        email: { type: 'string', description: 'Обязательный email клиента' },
+        contact_method: { type: 'string', enum: ['telegram', 'vk', 'max'], description: 'Выбранный канал связи: только telegram, vk или max' },
+        messenger_contact: { type: 'string', description: 'Проверенный контакт мессенджера: Telegram @username или https://t.me/username; полная ссылка VK; для MAX номер телефона аккаунта' },
         contact_time: { type: 'string', description: 'Удобное время связи' },
         delivery_method: { type: 'string', description: 'Способ доставки: СДЭК, DPD, Яндекс.Доставка, встреча в Москве, обсудить' },
         comment: { type: 'string', description: 'Комментарий клиента' },
       },
-      required: ['name', 'city', 'width', 'design_idea', 'contact_method', 'contact_details', 'contact_time', 'delivery_method'],
+      required: ['name', 'city', 'width', 'design_idea', 'colors', 'phone', 'email', 'contact_method', 'messenger_contact', 'contact_time', 'delivery_method'],
     },
   },
   {
@@ -100,25 +111,65 @@ function esc(s: unknown): string {
 
 const PLACEHOLDER = /неуказан|не указан|unknown|нет данных|^\s*$/i
 
-function validApplication(a: Record<string, unknown>): string | null {
+function validApplication(a: Record<string, unknown>, history: ChatMessage[]): string | null {
   const required: Array<[string, string]> = [
     ['name', 'имя'],
-    ['contact_details', 'контакт для связи'],
-    ['contact_method', 'способ связи'],
     ['city', 'город'],
     ['width', 'ширина зеркала'],
+    ['design_idea', 'идея дизайна'],
+    ['colors', 'цвет контура'],
+    ['phone', 'номер телефона'],
+    ['email', 'email'],
+    ['contact_method', 'канал связи'],
+    ['messenger_contact', 'контакт мессенджера'],
+    ['contact_time', 'удобное время связи'],
+    ['delivery_method', 'способ доставки'],
   ]
   const missing = required
     .filter(([key]) => PLACEHOLDER.test(String(a[key] ?? '')))
     .map(([, label]) => label)
-  return missing.length ? `missing: ${missing.join(', ')}` : null
+  if (missing.length) return `missing: ${missing.join(', ')}`
+
+  const phone = String(a.phone)
+  if (phone.replace(/\D/g, '').length < 10) return 'invalid: номер телефона должен содержать не менее 10 цифр'
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(a.email))) return 'invalid: неверный формат email'
+
+  const method = String(a.contact_method).toLowerCase()
+  const contact = String(a.messenger_contact).trim()
+  if (!['telegram', 'vk', 'max'].includes(method)) return 'invalid: канал связи должен быть Telegram, VK или MAX'
+  if (method === 'telegram' && !/^(@[a-zA-Z0-9_]{5,32}|https:\/\/t\.me\/[a-zA-Z0-9_]{5,32}\/?$)/.test(contact)) {
+    return 'invalid: нужен Telegram @username или ссылка https://t.me/username'
+  }
+  if (method === 'vk' && !/^https:\/\/(vk\.com|vk\.ru)\/[a-zA-Z0-9_.-]+\/?$/i.test(contact)) {
+    return 'invalid: нужна полная ссылка на личную страницу VK'
+  }
+  if (method === 'max' && contact.replace(/\D/g, '').length < 10) {
+    return 'invalid: нужен номер телефона аккаунта MAX'
+  }
+
+  const userText = history.filter((m) => m.role === 'user').map((m) => m.content).join('\n')
+  const userDigits = userText.replace(/\D/g, '')
+  const phoneDigits = phone.replace(/\D/g, '')
+  const messengerDigits = contact.replace(/\D/g, '')
+  if (!userDigits.includes(phoneDigits)) return 'invalid: номер телефона не был указан клиентом'
+  if (!userText.toLowerCase().includes(String(a.email).toLowerCase())) return 'invalid: email не был указан клиентом'
+  if (method === 'telegram' && !userText.toLowerCase().includes(contact.toLowerCase())) return 'invalid: Telegram-контакт не был указан клиентом'
+  if (method === 'vk' && !userText.toLowerCase().includes(contact.toLowerCase())) return 'invalid: ссылка VK не была указана клиентом'
+  if (method === 'max' && !userDigits.includes(messengerDigits)) return 'invalid: номер MAX не был указан клиентом'
+  if (!/(утр|д[её]н|вечер|любое время|в любое|после \d|до \d|\d{1,2}[:.]\d{2})/i.test(userText)) {
+    return 'missing: клиент не указал удобное время связи'
+  }
+  if (!/(сд[эе]к|dpd|яндекс.{0,15}достав|самовывоз|встреч|доставк.{0,20}обсуд)/i.test(userText)) {
+    return 'missing: клиент не выбрал способ доставки'
+  }
+  return null
 }
 
 function createApplication(a: Record<string, unknown>): number {
   const result = db.prepare(`
     INSERT INTO applications (name, city, width, height, design_idea, sketch_type, colors,
-      contact_method, contact_details, contact_time, delivery_method, comment)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      phone, email, contact_method, contact_details, messenger_contact, contact_time, delivery_method, comment)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     String(a.name || ''),
     String(a.city || ''),
@@ -127,8 +178,11 @@ function createApplication(a: Record<string, unknown>): number {
     String(a.design_idea || ''),
     String(a.sketch_type || ''),
     String(a.colors || ''),
+    String(a.phone || ''),
+    String(a.email || ''),
     String(a.contact_method || ''),
-    String(a.contact_details || ''),
+    String(a.messenger_contact || ''),
+    String(a.messenger_contact || ''),
     String(a.contact_time || ''),
     String(a.delivery_method || ''),
     String(a.comment || ''),
@@ -147,7 +201,9 @@ async function notifyApplication(id: number, a: Record<string, unknown>) {
     a.sketch_type ? `<b>Эскиз:</b> ${esc(a.sketch_type)}` : '',
     a.colors ? `<b>Цвета:</b> ${esc(a.colors)}` : '',
     ``,
-    `<b>Связь:</b> ${esc(a.contact_method)} — ${esc(a.contact_details)}`,
+    `<b>Телефон:</b> ${esc(a.phone)}`,
+    `<b>Email:</b> ${esc(a.email)}`,
+    `<b>Связь:</b> ${esc(a.contact_method)} — ${esc(a.messenger_contact)}`,
     `<b>Удобное время:</b> ${esc(a.contact_time)}`,
     `<b>Доставка:</b> ${esc(a.delivery_method)}`,
     a.comment ? `<b>Комментарий:</b> ${esc(a.comment)}` : '',
@@ -193,7 +249,7 @@ export async function handleChat(rawHistory: unknown): Promise<ChatResponse> {
     let fnResult: Record<string, unknown> = { ok: true }
     let submitted = false
     if (fc.name === 'submit_application') {
-      const invalid = validApplication(fc.arguments || {})
+      const invalid = validApplication(fc.arguments || {}, history)
       if (invalid) {
         fnResult = { ok: false, error: `Не хватает данных (${invalid}). Доспроси клиента и вызови функцию снова.` }
       } else {
@@ -216,7 +272,11 @@ export async function handleChat(rawHistory: unknown): Promise<ChatResponse> {
     result = await chatCompletion(messages, FUNCTIONS)
 
     if (submitted && !result.message.function_call) {
-      return { reply: result.message.content, submitted: true, model: result.model }
+      return {
+        reply: 'Заявка отправлена. Скоро Виталий с вами свяжется для уточнения деталей и подтверждения вашего заказа. Спасибо!\n\nПри получении обязательно проверьте коробку и зеркало в пункте выдачи под камерами.',
+        submitted: true,
+        model: result.model,
+      }
     }
   }
 

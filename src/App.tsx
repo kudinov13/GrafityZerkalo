@@ -179,7 +179,10 @@ function App() {
     try {
       await api.submitApplication({
         name: String(data.get('name') || ''),
-        contact_details: String(data.get('contact') || ''),
+        phone: String(data.get('phone') || ''),
+        email: String(data.get('email') || ''),
+        contact_method: String(data.get('contact_method') || ''),
+        messenger_contact: String(data.get('messenger_contact') || ''),
         design_idea: String(data.get('idea') || ''),
       })
       setFormState('sent')
@@ -453,8 +456,18 @@ function App() {
           <a href="https://t.me/ramcy_graffiti" target="_blank" rel="noreferrer">@ramcy_graffiti <ArrowIcon /></a>
         </div>
         <form className="contact__form" data-reveal onSubmit={submitContactForm}>
-          <label>Как тебя зовут?<input type="text" name="name" autoComplete="name" placeholder="Имя" required /></label>
-          <label>Куда написать?<input type="text" name="contact" placeholder="Телефон или Telegram" required /></label>
+          <label>Как вас зовут?<input type="text" name="name" autoComplete="name" placeholder="Имя" required /></label>
+          <label>Номер телефона<input type="tel" name="phone" autoComplete="tel" placeholder="+7 999 000-00-00" required /></label>
+          <label>Email (необязательно)<input type="email" name="email" autoComplete="email" placeholder="name@example.com" /></label>
+          <label>Где с вами связаться?
+            <select name="contact_method" required defaultValue="">
+              <option value="" disabled>Выберите мессенджер</option>
+              <option value="telegram">Telegram</option>
+              <option value="vk">VK</option>
+              <option value="max">MAX</option>
+            </select>
+          </label>
+          <label>Контакт в мессенджере<input type="text" name="messenger_contact" placeholder="Telegram @username / ссылка VK / номер MAX" required /></label>
           <label>Пожелания по размеру и дизайну<textarea name="idea" rows={4} placeholder="Какой размер зеркала хотите? Дизайн есть или придумать?" /></label>
           <button type="submit" disabled={formState === 'sending'}>
             {formState === 'sending' ? 'Отправляем…' : 'Отправить заявку'} <ArrowIcon />
