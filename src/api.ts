@@ -44,8 +44,11 @@ function uploadFiles<T>(path: string, formData: FormData, method = 'POST'): Prom
     method,
     headers,
     body: formData,
-  }).then((res) => {
-    if (!res.ok) throw new Error('Ошибка загрузки')
+  }).then(async (res) => {
+    if (!res.ok) {
+      const error = await res.json().catch(() => ({ error: 'Ошибка загрузки' }))
+      throw new Error(error.error || `HTTP ${res.status}`)
+    }
     return res.json()
   })
 }

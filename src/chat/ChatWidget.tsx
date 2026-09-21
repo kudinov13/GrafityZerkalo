@@ -74,8 +74,11 @@ export default function ChatWidget() {
     try {
       await api.chatUploadFile(file, sessionId.current)
       push({ role: 'assistant', content: 'Файл прикреплён к будущей заявке ✅ Напишите следующим сообщением, что изображено на нём и как использовать это в дизайне зеркала.' })
-    } catch {
-      push({ role: 'assistant', content: 'Не удалось отправить файл (до 20 МБ: jpg, png, webp, svg, ai, pdf, zip). Попробуйте ещё раз или пришлите файл Виталию: https://t.me/ramcy_graffiti' })
+    } catch (err) {
+      const reason = err instanceof Error && err.message.includes('сессия')
+        ? ' Обновите страницу (Ctrl+F5) и попробуйте ещё раз.'
+        : ''
+      push({ role: 'assistant', content: `Не удалось отправить файл (до 20 МБ: jpg, png, webp, svg, ai, pdf, zip).${reason} Попробуйте ещё раз или пришлите файл Виталию: https://t.me/ramcy_graffiti` })
     } finally {
       setSending(false)
       if (fileRef.current) fileRef.current.value = ''
