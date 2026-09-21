@@ -14,7 +14,7 @@ const OAUTH_URL = 'https://ngw.devices.sberbank.ru:9443/api/v2/oauth'
 const CHAT_URL = 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions'
 
 const MODEL_PRIMARY = process.env.GIGACHAT_MODEL || 'GigaChat-Pro'
-const MODEL_FALLBACK = 'GigaChat'
+const MODEL_FALLBACK = process.env.GIGACHAT_MODEL_FALLBACK || 'GigaChat-2'
 
 interface HttpResponse {
   status: number

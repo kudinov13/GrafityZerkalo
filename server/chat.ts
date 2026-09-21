@@ -98,6 +98,22 @@ function esc(s: unknown): string {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
+const PLACEHOLDER = /неуказан|не указан|unknown|нет данных|^\s*$/i
+
+function validApplication(a: Record<string, unknown>): string | null {
+  const required: Array<[string, string]> = [
+    ['name', 'имя'],
+    ['contact_details', 'контакт для связи'],
+    ['contact_method', 'способ связи'],
+    ['city', 'город'],
+    ['width', 'ширина зеркала'],
+  ]
+  const missing = required
+    .filter(([key]) => PLACEHOLDER.test(String(a[key] ?? '')))
+    .map(([, label]) => label)
+  return missing.length ? `missing: ${missing.join(', ')}` : null
+}
+
 function createApplication(a: Record<string, unknown>): number {
   const result = db.prepare(`
     INSERT INTO applications (name, city, width, height, design_idea, sketch_type, colors,
@@ -177,10 +193,15 @@ export async function handleChat(rawHistory: unknown): Promise<ChatResponse> {
     let fnResult: Record<string, unknown> = { ok: true }
     let submitted = false
     if (fc.name === 'submit_application') {
-      const id = createApplication(fc.arguments || {})
-      await notifyApplication(id, fc.arguments || {}).catch((e) => console.error('[chat] telegram notify failed:', e))
-      fnResult = { ok: true, application_id: id }
-      submitted = true
+      const invalid = validApplication(fc.arguments || {})
+      if (invalid) {
+        fnResult = { ok: false, error: `Не хватает данных (${invalid}). Доспроси клиента и вызови функцию снова.` }
+      } else {
+        const id = createApplication(fc.arguments || {})
+        await notifyApplication(id, fc.arguments || {}).catch((e) => console.error('[chat] telegram notify failed:', e))
+        fnResult = { ok: true, application_id: id }
+        submitted = true
+      }
     } else if (fc.name === 'contact_admin') {
       const q = esc(fc.arguments?.question)
       const c = esc(fc.arguments?.contact)
