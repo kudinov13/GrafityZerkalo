@@ -124,11 +124,31 @@ async function callModel(model: string, messages: ChatMessage[], functions: Giga
   }
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+const isRateLimited = (err: unknown) => err instanceof Error && err.message.includes('HTTP 429')
+
+async function callWithRetry(model: string, messages: ChatMessage[], functions: GigaFunction[]): Promise<CompletionResult> {
+  let lastErr: unknown
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await callModel(model, messages, functions)
+    } catch (err) {
+      lastErr = err
+      if (!isRateLimited(err) || attempt === 2) throw err
+      await sleep(2000 * (attempt + 1))
+    }
+  }
+  throw lastErr
+}
+
 export async function chatCompletion(messages: ChatMessage[], functions: GigaFunction[]): Promise<CompletionResult> {
   try {
-    return await callModel(MODEL_PRIMARY, messages, functions)
+    return await callWithRetry(MODEL_PRIMARY, messages, functions)
   } catch (err) {
     console.warn(`[gigachat] ${MODEL_PRIMARY} failed, falling back to ${MODEL_FALLBACK}:`, err instanceof Error ? err.message : err)
-    return callModel(MODEL_FALLBACK, messages, functions)
+    return callWithRetry(MODEL_FALLBACK, messages, functions)
   }
 }
