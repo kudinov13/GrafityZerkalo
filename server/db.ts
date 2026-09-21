@@ -54,6 +54,26 @@ db.exec(`
     filename TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS applications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    city TEXT DEFAULT '',
+    width TEXT DEFAULT '',
+    height TEXT DEFAULT '',
+    design_idea TEXT DEFAULT '',
+    sketch_type TEXT DEFAULT '',
+    colors TEXT DEFAULT '',
+    contact_method TEXT DEFAULT '',
+    contact_details TEXT DEFAULT '',
+    contact_time TEXT DEFAULT '',
+    delivery_method TEXT DEFAULT '',
+    comment TEXT DEFAULT '',
+    source TEXT DEFAULT 'chatbot',
+    status TEXT DEFAULT 'new',
+    admin_comment TEXT DEFAULT '',
+    created_at TEXT DEFAULT (datetime('now'))
+  );
 `)
 
 // Создаём админа по умолчанию, если таблица пуста

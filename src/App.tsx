@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import AdminPanel from './admin/AdminPanel'
+import ChatWidget from './chat/ChatWidget'
 import Lightbox from './Lightbox'
 import './admin/AdminPanel.css'
 import { api } from './api'
@@ -136,6 +137,7 @@ function App() {
   const [works, setWorks] = useState<Work[]>(fallbackWorks)
   const [reviews, setReviews] = useState<string[]>(fallbackReviews)
   const [lightbox, setLightbox] = useState<string | null>(null)
+  const [formState, setFormState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const reviewTrackRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -166,6 +168,25 @@ function App() {
     const track = reviewTrackRef.current
     if (!track) return
     track.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: 'smooth' })
+  }
+
+  const submitContactForm = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (formState === 'sending') return
+    const form = event.currentTarget
+    const data = new FormData(form)
+    setFormState('sending')
+    try {
+      await api.submitApplication({
+        name: String(data.get('name') || ''),
+        contact_details: String(data.get('contact') || ''),
+        design_idea: String(data.get('idea') || ''),
+      })
+      setFormState('sent')
+      form.reset()
+    } catch {
+      setFormState('error')
+    }
   }
 
   useEffect(() => {
@@ -431,11 +452,15 @@ function App() {
           <p>Расскажите, какой размер зеркала вы бы хотели? Нужно ли будет придумать дизайн, или он уже есть? Я свяжусь с вами и обсудим детали заказа.</p>
           <a href="https://t.me/ramcy_graffiti" target="_blank" rel="noreferrer">@ramcy_graffiti <ArrowIcon /></a>
         </div>
-        <form className="contact__form" data-reveal onSubmit={(event) => event.preventDefault()}>
-          <label>Как тебя зовут?<input type="text" name="name" autoComplete="name" placeholder="Имя" /></label>
-          <label>Куда написать?<input type="text" name="contact" placeholder="Телефон или Telegram" /></label>
+        <form className="contact__form" data-reveal onSubmit={submitContactForm}>
+          <label>Как тебя зовут?<input type="text" name="name" autoComplete="name" placeholder="Имя" required /></label>
+          <label>Куда написать?<input type="text" name="contact" placeholder="Телефон или Telegram" required /></label>
           <label>Пожелания по размеру и дизайну<textarea name="idea" rows={4} placeholder="Какой размер зеркала хотите? Дизайн есть или придумать?" /></label>
-          <button type="submit">Отправить заявку <ArrowIcon /></button>
+          <button type="submit" disabled={formState === 'sending'}>
+            {formState === 'sending' ? 'Отправляем…' : 'Отправить заявку'} <ArrowIcon />
+          </button>
+          {formState === 'sent' && <p className="contact__status">Заявка отправлена. Скоро Виталий с вами свяжется. Спасибо!</p>}
+          {formState === 'error' && <p className="contact__status contact__status--error">Не удалось отправить. Напишите напрямую: t.me/ramcy_graffiti</p>}
           <p>Нажимая кнопку, ты соглашаешься с политикой конфиденциальности.</p>
         </form>
       </section>
@@ -451,6 +476,7 @@ function App() {
         <small>© 2026 Vitaliy Ramcy</small>
       </footer>
       {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
+      <ChatWidget />
     </main>
   )
 }

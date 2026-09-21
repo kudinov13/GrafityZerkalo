@@ -104,6 +104,27 @@ export const api = {
   deleteReview: (id: number) =>
     request(`/reviews/${id}`, { method: 'DELETE' }),
 
+  // Chat
+  chatSend: (messages: Array<{ role: 'user' | 'assistant'; content: string }>) =>
+    request<{ reply: string; submitted?: boolean; model?: string }>('/chat', {
+      method: 'POST',
+      body: JSON.stringify({ messages }),
+    }),
+  chatUploadFile: (file: File) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return uploadFiles<{ ok: boolean; filename: string }>('/chat/file', formData)
+  },
+
+  // Applications
+  submitApplication: (data: { name: string; contact_details: string; design_idea?: string }) =>
+    request<{ ok: boolean; id: number }>('/applications', { method: 'POST', body: JSON.stringify(data) }),
+  getApplications: () => request<Array<Record<string, unknown>>>('/applications'),
+  updateApplication: (id: number, data: { status?: string; admin_comment?: string }) =>
+    request(`/applications/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteApplication: (id: number) =>
+    request(`/applications/${id}`, { method: 'DELETE' }),
+
   // Utils
   setToken,
   getToken,

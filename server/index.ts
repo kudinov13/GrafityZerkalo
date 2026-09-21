@@ -1,3 +1,4 @@
+import './env.js'
 import express from 'express'
 import cors from 'cors'
 import multer from 'multer'
@@ -8,6 +9,8 @@ import fs from 'fs'
 
 import db from './db.js'
 import { authMiddleware, generateToken, AuthRequest } from './auth.js'
+import { handleChat } from './chat.js'
+import { sendDocument, sendMessage } from './telegram.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -312,6 +315,134 @@ app.delete('/api/reviews/:id', authMiddleware, (req, res) => {
     }
     db.prepare('DELETE FROM reviews WHERE id = ?').run(req.params.id)
   }
+  res.json({ ok: true })
+})
+
+// ============ CHATBOT ============
+
+const chatRateLimit = new Map<string, number[]>()
+const CHAT_LIMIT = 30
+const CHAT_WINDOW_MS = 10 * 60 * 1000
+
+app.post('/api/chat', async (req, res) => {
+  const ip = req.ip || 'unknown'
+  const now = Date.now()
+  const hits = (chatRateLimit.get(ip) || []).filter((t) => now - t < CHAT_WINDOW_MS)
+  if (hits.length >= CHAT_LIMIT) {
+    res.status(429).json({ error: 'Слишком много сообщений. Попробуйте позже.' })
+    return
+  }
+  hits.push(now)
+  chatRateLimit.set(ip, hits)
+
+  try {
+    const result = await handleChat(req.body?.messages)
+    res.json(result)
+  } catch (err) {
+    console.error('[chat] error:', err)
+    res.status(500).json({
+      error: 'Не получилось ответить. Напишите Виталию напрямую: https://t.me/ramcy_graffiti',
+    })
+  }
+})
+
+// Файлы из чата (эскизы, фото): сохраняем и пересылаем в Telegram
+const chatUpload = multer({
+  storage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg', '.ai', '.pdf', '.eps', '.zip']
+    const ext = extname(file.originalname).toLowerCase()
+    if (allowed.includes(ext)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Недопустимый формат файла'))
+    }
+  },
+})
+
+app.post('/api/chat/file', chatUpload.single('file'), async (req, res) => {
+  const file = req.file
+  if (!file) {
+    res.status(400).json({ error: 'Нет файла' })
+    return
+  }
+  try {
+    await sendDocument(
+      join(uploadsDir, file.filename),
+      `Файл из чат-бота: ${file.originalname}`,
+    )
+  } catch (err) {
+    console.error('[chat] telegram document failed:', err)
+  }
+  res.json({ ok: true, filename: file.filename })
+})
+
+// ============ APPLICATIONS ============
+
+// Публичная заявка из контактной формы
+app.post('/api/applications', async (req, res) => {
+  const ip = req.ip || 'unknown'
+  const now = Date.now()
+  const hits = (chatRateLimit.get(`form:${ip}`) || []).filter((t) => now - t < CHAT_WINDOW_MS)
+  if (hits.length >= 10) {
+    res.status(429).json({ error: 'Слишком много заявок. Попробуйте позже.' })
+    return
+  }
+  hits.push(now)
+  chatRateLimit.set(`form:${ip}`, hits)
+
+  const { name, contact_details, design_idea } = req.body as Record<string, string>
+  if (!name?.trim() || !contact_details?.trim()) {
+    res.status(400).json({ error: 'Укажите имя и контакт для связи' })
+    return
+  }
+  const result = db.prepare(`
+    INSERT INTO applications (name, contact_details, design_idea, source)
+    VALUES (?, ?, ?, 'form')
+  `).run(String(name).slice(0, 120), String(contact_details).slice(0, 200), String(design_idea || '').slice(0, 2000))
+
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  try {
+    await sendMessage(
+      `<b>Новая заявка #${Number(result.lastInsertRowid)} (форма на сайте)</b>\n\n` +
+      `<b>Имя:</b> ${esc(String(name))}\n<b>Контакт:</b> ${esc(String(contact_details))}\n<b>Пожелания:</b> ${esc(String(design_idea || '—'))}`
+    )
+  } catch (err) {
+    console.error('[applications] telegram notify failed:', err)
+  }
+  res.json({ ok: true, id: Number(result.lastInsertRowid) })
+})
+
+app.get('/api/applications', authMiddleware, (req, res) => {
+  const apps = db.prepare('SELECT * FROM applications ORDER BY created_at DESC').all()
+  res.json(apps)
+})
+
+const APPLICATION_STATUSES = ['new', 'in_progress', 'contacted', 'done', 'cancelled']
+
+app.patch('/api/applications/:id', authMiddleware, (req, res) => {
+  const { status, admin_comment } = req.body as { status?: string; admin_comment?: string }
+  const existing = db.prepare('SELECT id FROM applications WHERE id = ?').get(req.params.id)
+  if (!existing) {
+    res.status(404).json({ error: 'Заявка не найдена' })
+    return
+  }
+  if (status !== undefined && !APPLICATION_STATUSES.includes(status)) {
+    res.status(400).json({ error: 'Недопустимый статус' })
+    return
+  }
+  if (status !== undefined) {
+    db.prepare('UPDATE applications SET status = ? WHERE id = ?').run(status, req.params.id)
+  }
+  if (admin_comment !== undefined) {
+    db.prepare('UPDATE applications SET admin_comment = ? WHERE id = ?').run(String(admin_comment), req.params.id)
+  }
+  res.json({ ok: true })
+})
+
+app.delete('/api/applications/:id', authMiddleware, (req, res) => {
+  db.prepare('DELETE FROM applications WHERE id = ?').run(req.params.id)
   res.json({ ok: true })
 })
 

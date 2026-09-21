@@ -9,6 +9,33 @@ function imgUrl(filename: string): string {
 }
 
 type Category = { id: number; name: string; slug: string }
+type Application = {
+  id: number
+  name: string
+  city: string
+  width: string
+  height: string
+  design_idea: string
+  sketch_type: string
+  colors: string
+  contact_method: string
+  contact_details: string
+  contact_time: string
+  delivery_method: string
+  comment: string
+  source: string
+  status: string
+  admin_comment: string
+  created_at: string
+}
+
+const APPLICATION_STATUSES: Record<string, string> = {
+  new: 'Новая',
+  in_progress: 'В работе',
+  contacted: 'Связались',
+  done: 'Завершена',
+  cancelled: 'Отменена',
+}
 type Product = {
   id: number
   name: string
@@ -331,10 +358,104 @@ function ReviewsManager({ onRefresh, onZoom }: { onRefresh: () => void; onZoom: 
   )
 }
 
+function ApplicationsManager() {
+  const [apps, setApps] = useState<Application[]>([])
+  const [drafts, setDrafts] = useState<Record<number, string>>({})
+
+  const load = useCallback(async () => {
+    try {
+      const data = await api.getApplications()
+      setApps(data as unknown as Application[])
+      setDrafts(Object.fromEntries((data as unknown as Application[]).map((a) => [a.id, a.admin_comment || ''])))
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const setStatus = async (id: number, status: string) => {
+    try {
+      await api.updateApplication(id, { status })
+      setApps((list) => list.map((a) => (a.id === id ? { ...a, status } : a)))
+    } catch {
+      alert('Ошибка обновления статуса')
+    }
+  }
+
+  const saveComment = async (id: number) => {
+    try {
+      await api.updateApplication(id, { admin_comment: drafts[id] || '' })
+    } catch {
+      alert('Ошибка сохранения комментария')
+    }
+  }
+
+  const remove = async (id: number) => {
+    if (!confirm('Удалить заявку?')) return
+    try {
+      await api.deleteApplication(id)
+      setApps((list) => list.filter((a) => a.id !== id))
+    } catch {
+      alert('Ошибка удаления')
+    }
+  }
+
+  const field = (label: string, value?: string) =>
+    value ? (
+      <div className="admin-app-field"><span>{label}</span><strong>{value}</strong></div>
+    ) : null
+
+  return (
+    <div className="admin-applications">
+      <h2>Заявки</h2>
+      {apps.length === 0 && <p className="admin-empty">Заявок пока нет.</p>}
+      {apps.map((a) => (
+        <article key={a.id} className={`admin-app-card admin-app-card--${a.status}`}>
+          <header className="admin-app-card__head">
+            <strong>#{a.id} {a.name}</strong>
+            <span className="admin-app-card__meta">
+              {a.source === 'chatbot' ? 'чат-бот' : 'форма'} · {new Date(a.created_at).toLocaleString('ru-RU')}
+            </span>
+            <select value={a.status} onChange={(e) => setStatus(a.id, e.target.value)}>
+              {Object.entries(APPLICATION_STATUSES).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </select>
+          </header>
+          <div className="admin-app-grid">
+            {field('Город', a.city)}
+            {field('Размер', [a.width, a.height].filter(Boolean).join(' × ') || undefined)}
+            {field('Дизайн', a.design_idea)}
+            {field('Эскиз', a.sketch_type)}
+            {field('Цвета', a.colors)}
+            {field('Связь', [a.contact_method, a.contact_details].filter(Boolean).join(' — ') || undefined)}
+            {field('Удобное время', a.contact_time)}
+            {field('Доставка', a.delivery_method)}
+            {field('Комментарий', a.comment)}
+          </div>
+          <div className="admin-app-comment">
+            <textarea
+              rows={2}
+              placeholder="Внутренний комментарий…"
+              value={drafts[a.id] ?? ''}
+              onChange={(e) => setDrafts((d) => ({ ...d, [a.id]: e.target.value }))}
+            />
+            <button type="button" onClick={() => saveComment(a.id)}>Сохранить</button>
+          </div>
+          <button type="button" className="admin-btn-danger admin-app-delete" onClick={() => remove(a.id)}>Удалить</button>
+        </article>
+      ))}
+    </div>
+  )
+}
+
 export default function AdminPanel({ onExit }: { onExit: () => void }) {
   const [authed, setAuthed] = useState(false)
   const [checking, setChecking] = useState(true)
-  const [tab, setTab] = useState<'products' | 'categories' | 'reviews'>('products')
+  const [tab, setTab] = useState<'products' | 'categories' | 'reviews' | 'applications'>('products')
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [showForm, setShowForm] = useState(false)
@@ -469,6 +590,7 @@ export default function AdminPanel({ onExit }: { onExit: () => void }) {
         <button type="button" className={tab === 'products' ? 'active' : ''} onClick={() => setTab('products')}>Товары ({products.length})</button>
         <button type="button" className={tab === 'categories' ? 'active' : ''} onClick={() => setTab('categories')}>Категории ({categories.length})</button>
         <button type="button" className={tab === 'reviews' ? 'active' : ''} onClick={() => setTab('reviews')}>Отзывы</button>
+        <button type="button" className={tab === 'applications' ? 'active' : ''} onClick={() => setTab('applications')}>Заявки</button>
       </nav>
 
       {showForm && (
@@ -517,6 +639,10 @@ export default function AdminPanel({ onExit }: { onExit: () => void }) {
 
       {tab === 'reviews' && (
         <ReviewsManager onRefresh={() => {}} onZoom={setLightbox} />
+      )}
+
+      {tab === 'applications' && (
+        <ApplicationsManager />
       )}
 
       {loading && <div className="admin-overlay">Сохранение...</div>}
