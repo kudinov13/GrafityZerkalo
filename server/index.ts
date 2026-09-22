@@ -27,8 +27,9 @@ if (!fs.existsSync(uploadsDir)) {
 // Middleware
 app.use(cors())
 app.use(express.json())
-app.use('/api', (_req, res, next) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
+app.use('/api', (req, res, next) => {
+  const publicGet = req.method === 'GET' && ['/products', '/reviews', '/categories'].includes(req.path)
+  res.setHeader('Cache-Control', publicGet ? 'public, max-age=60, stale-while-revalidate=300' : 'private, no-store')
   next()
 })
 

@@ -161,7 +161,7 @@ export default function ChatWidget() {
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 21 3l-7.5 18-3-7.5L3 11.5Z" /></svg>
             </button>
           </form>
-          <p className="chat__consent">Отправляя сообщение, вы соглашаетесь на обработку персональных данных</p>
+          <p className="chat__consent">Отправляя сообщение, вы соглашаетесь с <a href="/privacy.html" target="_blank" rel="noreferrer">политикой обработки персональных данных</a></p>
         </div>
       )}
     </>

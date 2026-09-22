@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import './App.css'
-import AdminPanel from './admin/AdminPanel'
 import ChatWidget from './chat/ChatWidget'
 import Lightbox from './Lightbox'
-import './admin/AdminPanel.css'
 import { api } from './api'
+
+const AdminPanel = lazy(() => import('./admin/AdminPanel'))
 
 const ASSET_VERSION = '20260921e'
 const assetUrl = (src: string) => src.startsWith('/images/') ? `${src}?v=${ASSET_VERSION}` : src
@@ -58,11 +58,11 @@ const fallbackReviews = [
 ]
 
 const questions = [
-  ['Можно сделать зеркало по моему эскизу?', 'Да. Можно прийти с готовым рисунком, фотографией или простой идеей. Если эскиза нет, Виталий разработает его с нуля.'],
-  ['Как выбрать размер?', 'Размер считается по ширине зеркала. Высота зависит от формы эскиза. Для небольшого акцента подойдёт 40 см, для комнаты чаще выбирают 60 см, а 90 см работает как самостоятельный арт-объект.'],
-  ['Сколько занимает изготовление?', 'Срок зависит от сложности рисунка и текущей очереди. Точную дату Виталий назовёт после обсуждения эскиза.'],
+  ['Можно сделать граффити-зеркало по моему эскизу?', 'Да. Можно прислать готовый рисунок, фотографию, логотип или идею. Если эскиза нет, Виталий разработает его с нуля.'],
+  ['Какие размеры арт-зеркал доступны?', 'Стандартная ширина — 40, 60 или 90 см. Высота зависит от формы эскиза. Индивидуальный размер можно обсудить с Виталием.'],
+  ['Сколько занимает изготовление?', 'Изготовление занимает 7–10 рабочих дней после утверждения эскиза и полной оплаты.'],
   ['Можно выбрать цвета?', 'Да. Цвет основы и контуров согласуем до начала работы, чтобы зеркало точно попало в интерьер или фирменный стиль.'],
-  ['Как проходит доставка?', 'Зеркала производятся в Москве. Доставка рассчитывается отдельно с учётом города, размера и безопасной упаковки.'],
+  ['Доставляете ли вы зеркала по России?', 'Да. Производство находится в Москве. Доставка доступна по Москве, Московской области и всей России; способ и стоимость согласовываются лично с Виталием.'],
 ]
 
 function ArrowIcon() {
@@ -88,7 +88,7 @@ function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void
   return (
     <main className="archive-page">
       <header className="archive-header">
-        <a className="brand" href="#top" onClick={goBack} aria-label="Vitaliy Ramcy, на главную"><img src={assetUrl('/images/GrafitLogo.webp')} alt="VITALIY RAMCY" /></a>
+        <a className="brand" href="#top" onClick={goBack} aria-label="Vitaliy Ramcy, на главную"><img src={assetUrl('/images/GrafitLogo-small.webp')} alt="VITALIY RAMCY" /></a>
         <nav id="archive-navigation" className={menuOpen ? 'nav nav--open' : 'nav'} aria-label="Основная навигация">
           <a href="#works" onClick={goBack}>Работы</a>
           <a href="#artist" onClick={goBack}>Автор</a>
@@ -216,7 +216,7 @@ function App() {
   }, [archiveOpen, adminOpen])
 
   if (archiveOpen) return <PortfolioArchive works={works} onBack={() => setArchiveOpen(false)} />
-  if (adminOpen) return <AdminPanel onExit={() => { window.location.href = window.location.pathname }} />
+  if (adminOpen) return <Suspense fallback={<div className="admin-overlay">Загрузка…</div>}><AdminPanel onExit={() => { window.location.href = window.location.pathname }} /></Suspense>
 
   const currentWork = works.length ? works[Math.min(activeWork, works.length - 1)] : { name: '', size: '', image: '' }
   const moveWork = (step: number) => setActiveWork((current) => Math.min(works.length - 1, Math.max(0, current + step)))
@@ -225,7 +225,7 @@ function App() {
     <main>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Vitaliy Ramcy, на главную">
-          <img src={assetUrl('/images/GrafitLogo.webp')} alt="VITALIY RAMCY" />
+          <img src={assetUrl('/images/GrafitLogo-small.webp')} alt="VITALIY RAMCY" />
         </a>
         <button
           className="menu-button"
@@ -262,8 +262,8 @@ function App() {
           <span>One of one</span>
         </div>
         <div className="hero__content">
-          <h1>Граффити-зеркала<br />для вашего пространства</h1>
-          <p>Граффити, которое можно повесить дома — зеркало с уникальным дизайном.</p>
+          <h1>Арт-зеркала и<br />граффити-зеркала на заказ</h1>
+          <p>Создаём в Москве по вашему эскизу или с дизайном с нуля. Доставляем по Московской области и всей России.</p>
         </div>
         <a className="hero__cta" href="#contact">
           <span>Создать своё</span>
@@ -288,7 +288,7 @@ function App() {
         <div className="section-heading" data-reveal>
           <p className="eyebrow">01 / Портфолио</p>
           <h2>Не вписываются.<br /><em>Меняют пространство.</em></h2>
-          <p className="section-intro">Каждое зеркало — уникальный арт-объект с индивидуальным рисунком. Закажите по своему дизайну, или доверьте его разработку мне.</p>
+          <p className="section-intro">Каждое арт-зеркало — уникальный объект с индивидуальным граффити-дизайном. Можно заказать зеркало по своему эскизу или доверить разработку Виталию.</p>
         </div>
         <div className="works-carousel" data-reveal>
           <div className="works-carousel__image">
@@ -351,7 +351,7 @@ function App() {
           <p className="eyebrow">03 / Автор</p>
           <h2>Идея, рождённая<br />из любви к <em>уличному искусству.</em></h2>
           <p>Меня зовут Виталий Гуров, в граффити известен как RAMCY — уличный художник и блогер из Москвы. Я придумал граффити-зеркала — кастомные арт-объекты, которые объединяют функциональность зеркала и выразительность уличного искусства.</p>
-          <p>Первые продажи проходили через мой блог: люди увидели работы, влюбились в идею и заказывали зеркала для дома, студий и в подарок. Теперь мы отправляем наши зеркала по всему миру. А производим их в Москве. Каждое зеркало — арт-объект, разработанный в единственном экземпляре с вашим уникальным дизайном. Вы выбираете размер, цвета контуров, а также эскиз для будущего зеркала.</p>
+          <p>Первые продажи проходили через мой блог: люди увидели работы, влюбились в идею и заказывали зеркала для дома, студий и в подарок. Производим арт-зеркала в Москве и доставляем по Московской области и всей России. Каждый объект создаётся в единственном экземпляре: вы выбираете размер, цвета контуров и эскиз будущего зеркала.</p>
           <div className="artist__facts">
             <span><strong>1/1</strong>Каждый дизайн уникален</span>
             <span><strong>Москва</strong>Здесь создаем проекты</span>
@@ -419,7 +419,7 @@ function App() {
             </article>
           ))}
         </div>
-        <p className="price-note">Доставка рассчитывается отдельно после согласования города и размера.</p>
+        <p className="price-note">Производство в Москве. Доставка по Москве, Московской области и всей России рассчитывается отдельно и согласовывается лично.</p>
       </section>
 
       <section className="reviews section">
@@ -445,7 +445,7 @@ function App() {
               <figure className="reviews-feed__item" key={i}>
                 <picture>
                   <source media="(max-width: 680px)" srcSet={mobileReviewUrl(image)} />
-                  <img src={assetUrl(image)} alt="Отзыв клиента" loading="lazy" onClick={() => setLightbox(assetUrl(image))} />
+                  <img src={assetUrl(image)} alt={`Отзыв клиента о граффити-зеркале RAMCY №${i + 1}`} loading="lazy" onClick={() => setLightbox(assetUrl(image))} />
                 </picture>
               </figure>
             ))}
@@ -473,7 +473,7 @@ function App() {
         <div className="contact__lead" data-reveal>
           <p className="eyebrow">08 / Твоя очередь</p>
           <h2>Какое зеркало<br />увидишь <em>ты?</em></h2>
-          <p>Расскажите, какой размер зеркала вы бы хотели? Нужно ли будет придумать дизайн, или он уже есть? Я свяжусь с вами и обсудим детали заказа.</p>
+          <p>Расскажите, какой размер арт-зеркала вам нужен и есть ли готовый эскиз. Виталий свяжется с вами, обсудит дизайн и доставку по Москве, Московской области или в другой регион России.</p>
           <a href="https://t.me/ramcy_graffiti" target="_blank" rel="noreferrer">@ramcy_graffiti <ArrowIcon /></a>
         </div>
         <form className="contact__form" data-reveal onSubmit={submitContactForm}>
@@ -495,17 +495,18 @@ function App() {
           </button>
           {formState === 'sent' && <p className="contact__status">Заявка отправлена. Скоро Виталий с вами свяжется. Спасибо!</p>}
           {formState === 'error' && <p className="contact__status contact__status--error">Не удалось отправить. Напишите напрямую: t.me/ramcy_graffiti</p>}
-          <p>Нажимая кнопку, ты соглашаешься с политикой конфиденциальности.</p>
+          <p>Нажимая кнопку, вы соглашаетесь с <a href="/privacy.html" target="_blank" rel="noreferrer">политикой обработки персональных данных</a>.</p>
         </form>
       </section>
 
       <footer>
-        <a className="brand" href="#top"><img src={assetUrl('/images/GrafitLogo.webp')} alt="VITALIY RAMCY" /></a>
-        <p><span onClick={() => { window.location.hash = 'admin'; setAdminOpen(true) }}>Граффити</span>-зеркала · Москва</p>
+        <a className="brand" href="#top"><img src={assetUrl('/images/GrafitLogo-small.webp')} alt="VITALIY RAMCY" /></a>
+        <p><span onClick={() => { window.location.hash = 'admin'; setAdminOpen(true) }}>Арт- и граффити</span>-зеркала · Москва · Доставка по России</p>
         <div>
           <a href="tel:+79778665350">+7 977 866-53-50</a>
           <a href="mailto:ya@vitaligurov.ru">ya@vitaligurov.ru</a>
           <a href="https://t.me/ramcy_graffiti" target="_blank" rel="noreferrer">Telegram</a>
+          <a href="/privacy.html">Конфиденциальность</a>
         </div>
         <small>© 2026 Vitaliy Ramcy</small>
       </footer>

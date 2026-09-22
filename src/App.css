@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Oswald:wght@500;600;700&display=swap');
+@font-face { font-family: 'Manrope'; src: url('/fonts/manrope-cyrillic.woff2') format('woff2'); font-style: normal; font-weight: 400 700; font-display: swap; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'Manrope'; src: url('/fonts/manrope-latin.woff2') format('woff2'); font-style: normal; font-weight: 400 700; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F, U+20AC, U+2122; }
+@font-face { font-family: 'Oswald'; src: url('/fonts/oswald-cyrillic.woff2') format('woff2'); font-style: normal; font-weight: 500 700; font-display: swap; unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116; }
+@font-face { font-family: 'Oswald'; src: url('/fonts/oswald-latin.woff2') format('woff2'); font-style: normal; font-weight: 500 700; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F, U+20AC, U+2122; }
 
 :root {
   --ink: #0b0b0a;
@@ -359,7 +362,7 @@ details > p { max-width: 650px; margin: -12px 48px 35px 58px; color: var(--muted
 footer { display: grid; grid-template-columns: 1fr 1fr 1fr auto; align-items: end; gap: 30px; padding: 42px clamp(20px, 5vw, 82px); border-top: 1px solid var(--line); font-size: 11px; }
 footer p { color: var(--muted); }
 footer > div { display: flex; flex-direction: column; gap: 8px; }
-footer > div a { text-decoration: none; }
+footer > div a { display: flex; align-items: center; min-height: 44px; text-decoration: none; }
 footer small { color: var(--muted); }
 
 [data-reveal] { opacity: 0; transform: translateY(35px); transition: opacity 800ms ease var(--delay, 0ms), transform 800ms cubic-bezier(.2,.75,.25,1) var(--delay, 0ms); }

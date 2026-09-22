@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '../api'
 import Lightbox from '../Lightbox'
+import './AdminPanel.css'
 
 // Seeded rows store full site paths (/images/...); uploaded files are bare
 // filenames served from /uploads/.

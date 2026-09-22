@@ -23,7 +23,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers, cache: 'no-store' })
+  const res = await fetch(`${API_BASE}${path}`, { ...options, headers })
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({ error: 'Ошибка сети' }))
