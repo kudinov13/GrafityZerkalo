@@ -28,7 +28,8 @@ if (!fs.existsSync(uploadsDir)) {
 app.use(cors())
 app.use(express.json())
 app.use('/api', (req, res, next) => {
-  const publicGet = req.method === 'GET' && ['/products', '/reviews', '/categories'].includes(req.path)
+  const path = req.originalUrl.split('?')[0]
+  const publicGet = req.method === 'GET' && ['/api/products', '/api/reviews', '/api/categories'].includes(path)
   res.setHeader('Cache-Control', publicGet ? 'public, max-age=60, stale-while-revalidate=300' : 'private, no-store')
   next()
 })
