@@ -169,6 +169,7 @@ function App() {
   const [lightbox, setLightbox] = useState<string | null>(null)
   const [formState, setFormState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [liteMode] = useState(shouldUseLiteMode)
+  const [visibleReviewCount, setVisibleReviewCount] = useState(() => liteMode ? 4 : 6)
   const reviewTrackRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -204,6 +205,12 @@ function App() {
     } catch {
       track.scrollLeft += dir * track.clientWidth * 0.8
     }
+  }
+
+  const loadMoreReviews = () => {
+    const track = reviewTrackRef.current
+    if (!track || track.scrollLeft + track.clientWidth < track.scrollWidth - 160) return
+    setVisibleReviewCount((count) => Math.min(reviews.length, count + (liteMode ? 4 : 6)))
   }
 
   const submitContactForm = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -358,7 +365,7 @@ function App() {
         </div>
       </section>
 
-      <section className="manifesto">
+      <section className="manifesto" data-reveal>
         <div className="manifesto__line" data-reveal>
           <span>ЗЕРКАЛО</span>
           <span className="manifesto__script">с характером</span>
@@ -469,8 +476,8 @@ function App() {
               </button>
             </div>
           </div>
-          <div className="reviews-feed__track" ref={reviewTrackRef}>
-            {reviews.map((image, i) => (
+          <div className="reviews-feed__track" ref={reviewTrackRef} onScroll={loadMoreReviews}>
+            {reviews.slice(0, visibleReviewCount).map((image, i) => (
               <figure className="reviews-feed__item" key={i}>
                 <picture>
                   <source media="(max-width: 680px)" srcSet={mobileReviewUrl(image)} />
@@ -498,7 +505,7 @@ function App() {
         </div>
       </section>
 
-      <section className="contact" id="contact">
+      <section className="contact" id="contact" data-reveal>
         <div className="contact__lead" data-reveal>
           <p className="eyebrow">08 / Твоя очередь</p>
           <h2>Какое зеркало<br />увидишь <em>ты?</em></h2>
