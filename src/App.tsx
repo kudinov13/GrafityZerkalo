@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, type SyntheticEvent, useEffect, useRef, useState } from 'react'
 import './App.css'
 import ChatWidget from './chat/ChatWidget'
 import Lightbox from './Lightbox'
@@ -6,8 +6,15 @@ import { api } from './api'
 
 const AdminPanel = lazy(() => import('./admin/AdminPanel'))
 
-const ASSET_VERSION = '20260921e'
+const ASSET_VERSION = '20260923a'
 const assetUrl = (src: string) => src.startsWith('/images/') ? `${src}?v=${ASSET_VERSION}` : src
+
+function retryImage(event: SyntheticEvent<HTMLImageElement>) {
+  const image = event.currentTarget
+  if (image.dataset.retry) return
+  image.dataset.retry = '1'
+  image.src = `${image.src}${image.src.includes('?') ? '&' : '?'}retry=1`
+}
 const mobileWorkUrl = (src: string) => src.startsWith('/images/IMG_') && src.endsWith('.webp')
   ? assetUrl(src.replace('.webp', '-mobile.webp'))
   : assetUrl(src)
@@ -120,7 +127,7 @@ function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void
             <div className="archive-card__image">
               <picture>
                 <source media="(max-width: 680px)" srcSet={mobileWorkUrl(work.image)} />
-                <img src={assetUrl(work.image)} alt={`Граффити-зеркало ${work.name}`} loading={index < 2 ? 'eager' : 'lazy'} onClick={() => setLightbox(assetUrl(work.image))} />
+                <img src={assetUrl(work.image)} alt={`Граффити-зеркало ${work.name}`} loading={index < 2 ? 'eager' : 'lazy'} onError={retryImage} onClick={() => setLightbox(assetUrl(work.image))} />
               </picture>
               <span>{String(index + 1).padStart(2, '0')}</span>
             </div>
@@ -252,7 +259,7 @@ function App() {
         <div className="hero__media" aria-hidden="true">
           <picture>
             <source media="(max-width: 680px)" srcSet={assetUrl('/images/Mobile/Hero-mobile-v2.webp')} />
-            <img src={assetUrl('/images/Hero_Desktop.webp')} alt="" fetchPriority="high" />
+            <img src={assetUrl('/images/Hero_Desktop.webp')} alt="" fetchPriority="high" onError={retryImage} />
           </picture>
         </div>
         <div className="hero__shade" />
@@ -302,6 +309,7 @@ function App() {
                         src={assetUrl(work.image)}
                         alt={`Граффити-зеркало ${work.name}`}
                         loading="eager"
+                        onError={retryImage}
                         onClick={() => setLightbox(assetUrl(work.image))}
                       />
                     </picture>
@@ -343,7 +351,7 @@ function App() {
         <div className="artist__photo" data-reveal>
           <picture>
             <source media="(max-width: 680px)" srcSet={assetUrl('/images/ramcy-mobile.webp')} />
-            <img src={assetUrl('/images/ramcy.webp')} alt="Виталий RAMCY за работой" loading="lazy" />
+            <img src={assetUrl('/images/ramcy.webp')} alt="Виталий RAMCY за работой" loading="lazy" onError={retryImage} />
           </picture>
           <span>RAMCY / MOSCOW</span>
         </div>
@@ -375,7 +383,6 @@ function App() {
               <span>{number}</span>
               <h3>{title}</h3>
               <p>{text}</p>
-              <i>↗</i>
             </article>
           ))}
         </div>
@@ -384,7 +391,7 @@ function App() {
       <section className="campaign" aria-label="Граффити-зеркала в интерьере">
         <picture>
           <source media="(max-width: 680px)" srcSet={assetUrl('/images/Mobile/Mobile-2-v2.webp')} />
-          <img src={assetUrl('/images/3.webp')} alt="Девушка держит граффити-зеркало на фоне серой бетонной стены" loading="lazy" />
+          <img src={assetUrl('/images/3.webp')} alt="Девушка держит граффити-зеркало на фоне серой бетонной стены" loading="lazy" onError={retryImage} />
         </picture>
         <div className="campaign__overlay" />
         <div className="campaign__content" data-reveal>
@@ -445,7 +452,7 @@ function App() {
               <figure className="reviews-feed__item" key={i}>
                 <picture>
                   <source media="(max-width: 680px)" srcSet={mobileReviewUrl(image)} />
-                  <img src={assetUrl(image)} alt={`Отзыв клиента о граффити-зеркале RAMCY №${i + 1}`} loading="lazy" onClick={() => setLightbox(assetUrl(image))} />
+                  <img src={assetUrl(image)} alt={`Отзыв клиента о граффити-зеркале RAMCY №${i + 1}`} loading="lazy" onError={retryImage} onClick={() => setLightbox(assetUrl(image))} />
                 </picture>
               </figure>
             ))}
