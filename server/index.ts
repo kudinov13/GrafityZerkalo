@@ -494,6 +494,6 @@ app.get('/api/health', (req, res) => {
 })
 
 // Запуск сервера
-app.listen(PORT, () => {
+app.listen(PORT, '127.0.0.1', () => {
   console.log(`Сервер запущен на http://localhost:${PORT}`)
 })
