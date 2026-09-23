@@ -16,6 +16,7 @@ while read oldrev newrev ref; do
     npm run build
     echo "=== update nginx ==="
     install -m 644 "$TARGET/deploy/nginx-site.conf" /etc/nginx/sites-available/graffiti-zerkalo
+    install -m 644 "$TARGET/deploy/nginx-timing.conf" /etc/nginx/conf.d/graffiti-timing.conf
     nginx -t
     systemctl reload nginx
     echo "=== restart api ==="

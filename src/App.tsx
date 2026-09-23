@@ -83,10 +83,11 @@ function ArrowIcon() {
 type Work = { name: string; size: string; image: string }
 
 function shouldUseLiteMode(): boolean {
-  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection
   const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory
   return Boolean(
     connection?.saveData
+    || ['slow-2g', '2g', '3g'].includes(connection?.effectiveType || '')
     || (deviceMemory !== undefined && deviceMemory <= 2)
     || (navigator.hardwareConcurrency !== undefined && navigator.hardwareConcurrency <= 2),
   )
@@ -198,7 +199,11 @@ function App() {
   const scrollReviews = (dir: number) => {
     const track = reviewTrackRef.current
     if (!track) return
-    track.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: 'smooth' })
+    try {
+      track.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: 'smooth' })
+    } catch {
+      track.scrollLeft += dir * track.clientWidth * 0.8
+    }
   }
 
   const submitContactForm = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -324,7 +329,8 @@ function App() {
                       <img
                         src={assetUrl(work.image)}
                         alt={`Граффити-зеркало ${work.name}`}
-                        loading="eager"
+                        loading={index === activeWork ? 'eager' : 'lazy'}
+                        decoding="async"
                         onError={retryImage}
                         onClick={() => setLightbox(assetUrl(work.image))}
                       />

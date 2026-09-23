@@ -50,7 +50,13 @@ export default function ChatWidget() {
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' })
+    const list = listRef.current
+    if (!list) return
+    try {
+      list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' })
+    } catch {
+      list.scrollTop = list.scrollHeight
+    }
   }, [messages, sending, open])
 
   const push = (msg: Msg) => setMessages((m) => [...m, msg])
