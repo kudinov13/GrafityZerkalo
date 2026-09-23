@@ -27,6 +27,7 @@
   display: flex;
   flex-direction: column;
   width: min(400px, calc(100vw - 32px));
+  height: min(600px, calc(100vh - 90px));
   height: min(600px, calc(100dvh - 90px));
   border: 1px solid var(--line);
   background: #10100f;
@@ -163,6 +164,7 @@
     bottom: 0;
     left: 0;
     width: 100%;
+    height: 100vh;
     height: 100dvh;
     border: 0;
   }

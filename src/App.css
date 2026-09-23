@@ -477,6 +477,22 @@ footer small { color: var(--muted); }
   [data-reveal] { opacity: 1; transform: none; }
 }
 
+.site--lite .manifesto,
+.site--lite .campaign,
+.site--lite .contact { background-image: none; }
+.site--lite .manifesto,
+.site--lite .artist,
+.site--lite .process,
+.site--lite .campaign,
+.site--lite .prices,
+.site--lite .reviews,
+.site--lite .faq,
+.site--lite .contact { content-visibility: visible; contain-intrinsic-size: auto; }
+.site--lite *,
+.site--lite *::before,
+.site--lite *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+.site--lite [data-reveal] { opacity: 1; transform: none; }
+
 /* Lightbox */
 .works-carousel__slide img, .archive-card__image img, .reviews-feed__item img { cursor: zoom-in; }
 .lightbox { position: fixed; inset: 0; z-index: 300; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(7,7,6,.93); backdrop-filter: blur(8px); cursor: zoom-out; }

@@ -82,6 +82,16 @@ function ArrowIcon() {
 
 type Work = { name: string; size: string; image: string }
 
+function shouldUseLiteMode(): boolean {
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection
+  const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory
+  return Boolean(
+    connection?.saveData
+    || (deviceMemory !== undefined && deviceMemory <= 2)
+    || (navigator.hardwareConcurrency !== undefined && navigator.hardwareConcurrency <= 2),
+  )
+}
+
 const ARCHIVE_PAGE_SIZE = 8
 
 function PortfolioArchive({ works, onBack }: { works: Work[]; onBack: () => void }) {
@@ -157,9 +167,11 @@ function App() {
   const [reviews, setReviews] = useState<string[]>(fallbackReviews)
   const [lightbox, setLightbox] = useState<string | null>(null)
   const [formState, setFormState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [liteMode] = useState(shouldUseLiteMode)
   const reviewTrackRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    document.documentElement.classList.add('app-ready')
     if (window.location.hash === '#admin') {
       setAdminOpen(true)
     }
@@ -214,13 +226,17 @@ function App() {
   useEffect(() => {
     if (archiveOpen || adminOpen) return
     const nodes = document.querySelectorAll<HTMLElement>('[data-reveal]')
+    if (liteMode || !('IntersectionObserver' in window)) {
+      nodes.forEach((node) => node.classList.add('is-visible'))
+      return
+    }
     const observer = new IntersectionObserver(
       (entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add('is-visible')),
       { threshold: 0.14 },
     )
     nodes.forEach((node) => observer.observe(node))
     return () => observer.disconnect()
-  }, [archiveOpen, adminOpen])
+  }, [archiveOpen, adminOpen, liteMode])
 
   if (archiveOpen) return <PortfolioArchive works={works} onBack={() => setArchiveOpen(false)} />
   if (adminOpen) return <Suspense fallback={<div className="admin-overlay">Загрузка…</div>}><AdminPanel onExit={() => { window.location.href = window.location.pathname }} /></Suspense>
@@ -229,7 +245,7 @@ function App() {
   const moveWork = (step: number) => setActiveWork((current) => Math.min(works.length - 1, Math.max(0, current + step)))
 
   return (
-    <main>
+    <main className={liteMode ? 'site--lite' : undefined}>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Vitaliy Ramcy, на главную">
           <img src={assetUrl('/images/GrafitLogo-small.webp')} alt="VITALIY RAMCY" />
