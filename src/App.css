@@ -177,7 +177,7 @@ p, li, a, span { overflow-wrap: break-word; }
 }
 
 .ticker { overflow: hidden; border-block: 1px solid var(--line); background: var(--paper); color: var(--ink); }
-.ticker > div { display: flex; width: max-content; padding: 16px 0; animation: ticker 48s linear infinite; }
+.ticker > div { display: flex; width: max-content; padding: 16px 0; animation: ticker 120s linear infinite; }
 .ticker span { font: 600 25px/1 var(--display); letter-spacing: -.02em; text-transform: uppercase; }
 .ticker i { margin: 0 28px; color: var(--acid); font-style: normal; }
 @keyframes ticker { to { transform: translateX(-50%); } }
