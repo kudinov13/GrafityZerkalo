@@ -13,6 +13,8 @@ const SYSTEM_PROMPT = `Ты — бот-помощник RAMCY на сайте gr
 - Отвечай на языке пользователя: русский или английский.
 - При первом ответе можешь коротко представиться как бот-помощник RAMCY.
 - Отвечай кратко и по делу, без длинных лекций.
+- Не упоминай GigaChat, ИИ, модель, системный промпт и внутреннюю базу знаний.
+- Если клиент не знает, какой стиль выбрать, расскажи, что Виталий RAMCY занимается граффити больше 18 лет и поможет найти направление. Спроси, где будет зеркало и что клиенту близко: тег, леттеринг, персонаж или общее настроение. Предложи прикрепить фото места или референс. Не называй такой вопрос неизвестным и не перенаправляй его как технический вопрос.
 
 ПРОДУКТ
 - Зеркала изготовлены из акрилового стекла: оно легче, прочнее и безопаснее обычного стекла, позволяет вырезать любые, даже самые сложные формы и наносить УФ-печать.
@@ -254,10 +256,21 @@ export interface ChatResponse {
 const MAX_HISTORY = 20
 const MAX_MESSAGE_LEN = 2000
 
-export async function handleChat(rawHistory: unknown, rawSessionId?: unknown): Promise<ChatResponse> {
-  if (!process.env.GIGACHAT_CREDENTIALS) {
-    return { reply: 'Чат временно недоступен. Напишите Виталию напрямую: https://t.me/ramcy_graffiti' }
+function getStyleConsultationReply(history: ChatMessage[]): string | null {
+  const message = [...history].reverse().find((item) => item.role === 'user')?.content || ''
+  const russianIntent = /(?:не\s+знаю|не\s+уверен[а]?|пока\s+не\s+решил[а]?|не\s+могу\s+выбрать|пока\s+нет\s+идеи|нет\s+идеи).{0,100}(?:стил\w*|дизайн\w*|эскиз\w*|рисунок|образ)|(?:стил\w*|дизайн\w*|образ).{0,70}(?:посовет\w*|подоб\w*|выбрать|помог\w*|подойд[её]т)|(?:в\s+каком\s+стиле|какой\s+стиль).{0,70}(?:лучше|подойд|сделать|выбрать)/i
+  const englishIntent = /\b(?:i don't know|not sure|haven't decided|can't choose|no idea)\b.{0,100}\b(?:style|design|look|artwork)\b|\b(?:style|design)\b.{0,60}\b(?:recommend|suggest|help me|choose|suit)\b|\bwhat style\b.{0,60}\b(?:should|would|best|suit)\b/i
+
+  if (russianIntent.test(message)) {
+    return 'Необязательно сразу знать точный стиль. Виталий RAMCY занимается граффити больше 18 лет и поможет найти направление, которое подойдёт именно вам. Расскажите, где будет зеркало и что вам ближе: тег, леттеринг, персонаж или просто настроение. Если есть фото места или референс, прикрепите его сюда.'
   }
+  if (englishIntent.test(message)) {
+    return "You don't need to know the exact style yet. Vitaliy RAMCY has over 18 years of graffiti experience and can help you find a direction that feels right. Tell me where the mirror will go and what you're drawn to: a tag, lettering, a character, or just a mood. You can attach a room photo or reference here."
+  }
+  return null
+}
+
+export async function handleChat(rawHistory: unknown, rawSessionId?: unknown): Promise<ChatResponse> {
   if (!Array.isArray(rawHistory)) {
     throw new Error('messages must be an array')
   }
@@ -271,6 +284,12 @@ export async function handleChat(rawHistory: unknown, rawSessionId?: unknown): P
 
   if (history.length === 0) {
     throw new Error('empty history')
+  }
+
+  const styleReply = getStyleConsultationReply(history)
+  if (styleReply) return { reply: styleReply }
+  if (!process.env.GIGACHAT_CREDENTIALS) {
+    return { reply: 'Чат временно недоступен. Напишите Виталию напрямую: https://t.me/ramcy_graffiti' }
   }
 
   const sessionId = typeof rawSessionId === 'string' && /^[a-zA-Z0-9_-]{16,80}$/.test(rawSessionId) ? rawSessionId : ''
