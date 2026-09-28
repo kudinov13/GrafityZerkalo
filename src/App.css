@@ -192,7 +192,7 @@ p, li, a, span { overflow-wrap: break-word; }
   letter-spacing: -0.045em;
   text-transform: uppercase;
 }
-.artist h2 { line-height: 1.08; }
+.artist h2 { line-height: 1.08; letter-spacing: -.018em; }
 .prices h2 { line-height: 1.04; }
 .contact h2 { max-width: 380px; line-height: 1.05; }
 h2 em { color: var(--acid); font-style: normal; }
