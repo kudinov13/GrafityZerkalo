@@ -287,22 +287,22 @@ function App() {
       <section className="hero" id="top">
         <div className="hero__media" aria-hidden="true">
           <picture>
-            <source media="(max-width: 680px)" srcSet="/images/Mobile/Hero-mobile-hq.webp" />
-            <img src="/images/Hero_Desktop-hq.webp" alt="" fetchPriority="high" onError={retryImage} />
+            <source media="(max-width: 680px)" srcSet="/images/Mobile/Hero-mobile-hq2.webp" />
+            <img src="/images/Hero_Desktop-hq2.webp" alt="" fetchPriority="high" onError={retryImage} />
           </picture>
         </div>
         <div className="hero__shade" />
         <div className="hero__meta">
           <span>Москва</span>
-          <span>Авторский почерк</span>
+          <span>Арт-объекты</span>
           <span>One of one</span>
         </div>
         <div className="hero__content">
-          <h1>Граффити<br />в отражении.<br />Почерк с улиц,<br />вне стен.</h1>
-          <p>Я Виталий RAMCY. Переношу граффити на зеркало. Начнём с тега, персонажа или настроения?</p>
+          <h1>Граффити-зеркала<br />для вашего пространства</h1>
+          <p>Граффити, которое можно повесить дома — зеркало с уникальным дизайном.</p>
         </div>
         <a className="hero__cta" href="#contact">
-          <span>Начать с идеи</span>
+          <span>Создать своё</span>
           <ArrowIcon />
         </a>
       </section>
@@ -380,8 +380,8 @@ function App() {
       <section className="artist section" id="artist">
         <div className="artist__photo" data-reveal>
           <picture>
-            <source media="(max-width: 680px)" srcSet={assetUrl('/images/ramcy-mobile.webp')} />
-            <img src={assetUrl('/images/ramcy.webp')} alt="Виталий RAMCY за работой" loading="lazy" onError={retryImage} />
+            <source media="(max-width: 680px)" srcSet={assetUrl('/images/ramcy-mobile-hq2.webp')} />
+            <img src={assetUrl('/images/ramcy-hq2.webp')} alt="Виталий RAMCY за работой" loading="lazy" onError={retryImage} />
           </picture>
           <span>RAMCY / MOSCOW</span>
         </div>
@@ -420,8 +420,8 @@ function App() {
 
       <section className="campaign" aria-label="Граффити-зеркала в интерьере">
         <picture>
-          <source media="(max-width: 680px)" srcSet={assetUrl('/images/Mobile/Mobile-2-v2.webp')} />
-          <img src={assetUrl('/images/3.webp')} alt="Девушка держит граффити-зеркало на фоне серой бетонной стены" loading="lazy" onError={retryImage} />
+          <source media="(max-width: 680px)" srcSet={assetUrl('/images/Mobile/Mobile-2-hq2.webp')} />
+          <img src={assetUrl('/images/3-hq2.webp')} alt="Девушка держит граффити-зеркало на фоне серой бетонной стены" loading="lazy" onError={retryImage} />
         </picture>
         <div className="campaign__overlay" />
         <div className="campaign__content" data-reveal>

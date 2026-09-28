@@ -435,7 +435,7 @@ footer small { color: var(--muted); }
   .archive-contact { margin-bottom: 70px; }
   .work__caption h3 { font-size: 28px; }
   .manifesto { padding: 18px 18px 18px; }
-  .manifesto.is-visible { background: url('/images/Mobile/Mobile-3-v2.webp?v=20260923a') center 45% / 130% auto no-repeat, #070706; }
+  .manifesto.is-visible { background: url('/images/Mobile/Mobile-3-hq2.webp') center 45% / 130% auto no-repeat, #070706; }
   .manifesto__line { display: block; font-size: 24vw; text-align: left; }
   .manifesto__script { display: block; margin: 18px 0 0 18vw; font-size: 14vw; }
   .manifesto__copy { margin-top: 55px; padding-top: 8px; font-size: 9px; }
@@ -478,6 +478,7 @@ footer small { color: var(--muted); }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .ticker > div { animation: none !important; transform: none; }
   [data-reveal] { opacity: 1; transform: none; }
 }
 
@@ -495,6 +496,7 @@ footer small { color: var(--muted); }
 .site--lite *,
 .site--lite *::before,
 .site--lite *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+.site--lite .ticker > div { animation-duration: 120s !important; }
 .site--lite [data-reveal] { opacity: 1; transform: none; }
 
 /* Lightbox */
