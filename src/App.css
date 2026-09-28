@@ -482,7 +482,6 @@ footer small { color: var(--muted); }
   [data-reveal] { opacity: 1; transform: none; }
 }
 
-.site--lite .manifesto,
 .site--lite .campaign,
 .site--lite .contact { background-image: none; }
 .site--lite .manifesto,
